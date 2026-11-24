@@ -637,6 +637,9 @@ export function ProductDetail({ p }: { p: (typeof INITIAL_PRODUCTS)[number] }) {
 export function Profile() {
   const nav = useNav()
   const { t } = nav
+  const savedShop = (() => { try { return localStorage.getItem('jj-seller-shop') || '' } catch { return '' } })()
+  const storeTitle = savedShop || `${seller.name} ${t.home.storeSuffix}`
+  const storeLetter = (savedShop || seller.name)[0]?.toUpperCase() || 'J'
 
   const business = [
     { l: t.profile.finance, r: 'finance', ic: Wallet, bg: '#e8f7ee', c: '#1a8f4c', val: `${fmt(seller.balance)} ₸` },
@@ -660,9 +663,9 @@ export function Profile() {
 
       <div className="scroll">
         <button className="prof-hero" onClick={() => nav.push('profileEdit')}>
-          <span className="prof-av">{seller.name[0]}</span>
+          <span className="prof-av">{storeLetter}</span>
           <div className="prof-info">
-            <b>{seller.name} {t.home.storeSuffix}</b>
+            <b>{storeTitle}</b>
             <small>{seller.phone}</small>
             <span className="prof-ver"><CheckCircle2 size={11} />{t.profile.storeActive}</span>
           </div>
@@ -740,7 +743,7 @@ export function Profile() {
           })}
         </div>
 
-        <button className="prof-logout" onClick={() => nav.toast(t.profile.logoutToast)}>
+        <button className="prof-logout" onClick={() => (nav.logout ? nav.logout() : nav.toast(t.profile.logoutToast))}>
           <LogOut size={16} />{t.profile.logout}
         </button>
         <div style={{ textAlign: 'center', color: 'var(--ink3)', fontSize: 12, margin: '14px 0 8px' }}>JJ Seller · v1.2.0</div>

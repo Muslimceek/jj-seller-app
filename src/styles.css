@@ -1510,3 +1510,253 @@ input, textarea { outline: none; }
 }
 .qr-pass-loc svg { color: #ae33ff; flex: none; }
 .qr-pass-hint { text-align: center; font-size: 11px; color: #8e8e93; padding: 6px 16px 14px; }
+
+/* ===== Вход и регистрация продавца v2 — Dark-Violet Atmospheric Hero + Elevated Sheet ===== */
+.au2 { flex: 1; min-height: 0; display: flex; flex-direction: column; background: #18141f; animation: slideIn .22s cubic-bezier(.2,.8,.2,1); }
+.au2-screen { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+
+/* Премиальная тёмно-фиолетовая шапка с мягким свечением */
+.au2-hero {
+  position: relative; flex: none; padding: 6px 18px 20px; overflow: hidden;
+  background: linear-gradient(155deg, #17131e 0%, #271540 58%, #47187a 100%);
+  color: #fff;
+}
+.au2-hero.reg { padding-bottom: 16px; }
+.au2-hero.otp { padding-bottom: 22px; text-align: center; }
+.au2-glow {
+  position: absolute; right: -44px; top: -30px; width: 210px; height: 210px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(174, 51, 255, .42) 0%, rgba(174, 51, 255, 0) 70%);
+  pointer-events: none;
+}
+
+.au2-top { position: relative; z-index: 2; display: flex; align-items: center; justify-content: space-between; height: 42px; margin-bottom: 12px; }
+.au2-brand { display: inline-flex; align-items: center; gap: 9px; font-size: 16px; font-weight: 600; letter-spacing: -.2px; color: #fff; }
+.au2-brand b { color: #d896ff; font-weight: 800; }
+.au2-logo-box {
+  width: 34px; height: 34px; border-radius: 11px; padding: 6px;
+  background: linear-gradient(135deg, #c15bff, #8e22e6);
+  box-shadow: 0 6px 18px rgba(174, 51, 255, .45); display: grid; place-items: center;
+}
+.au2-logo-box img { width: 100%; height: 100%; }
+.au2-back {
+  width: 34px; height: 34px; border-radius: 11px;
+  background: rgba(255, 255, 255, .11); border: 1px solid rgba(255, 255, 255, .14);
+  color: #fff; display: grid; place-items: center;
+}
+
+/* Встроенный переключатель TR · RU · KZ (без флагов, стеклянный) */
+.au2-lang {
+  display: inline-flex; background: rgba(255, 255, 255, .1); border: 1px solid rgba(255, 255, 255, .12);
+  padding: 2.5px; border-radius: 10px; gap: 2px;
+}
+.au2-lang button {
+  height: 25px; min-width: 30px; padding: 0 7px; border-radius: 7.5px;
+  font-size: 11px; font-weight: 700; color: rgba(255, 255, 255, .68); transition: all .18s;
+}
+.au2-lang button.on { background: #fff; color: #1b1b1f; box-shadow: 0 2px 6px rgba(0, 0, 0, .2); }
+
+/* Прогресс 2 шагов внутри шапки */
+.au2-steps {
+  position: relative; z-index: 2; display: inline-flex; align-items: center; gap: 8px;
+  margin-bottom: 10px;
+}
+.au2-steps span {
+  display: inline-flex; align-items: center; gap: 5px; font-size: 11.5px; font-weight: 600;
+  color: rgba(255, 255, 255, .52);
+}
+.au2-steps span i {
+  font-style: normal; width: 18px; height: 18px; border-radius: 9px;
+  background: rgba(255, 255, 255, .14); color: rgba(255, 255, 255, .75);
+  display: grid; place-items: center; font-size: 10px; font-weight: 800;
+}
+.au2-steps span.on { color: #fff; font-weight: 700; }
+.au2-steps span.on i { background: #ae33ff; color: #fff; box-shadow: 0 0 0 3px rgba(174, 51, 255, .3); }
+.au2-steps span.done { color: #a7f3d0; }
+.au2-steps span.done i { background: #1fa45a; color: #fff; }
+.au2-steps em { display: block; width: 22px; height: 2px; border-radius: 2px; background: rgba(255, 255, 255, .2); }
+.au2-steps em.on { background: #ae33ff; }
+
+.au2-hero-copy { position: relative; z-index: 2; }
+.au2-hero-copy h1 { margin: 0; font-size: 24px; line-height: 1.16; font-weight: 800; letter-spacing: -.5px; color: #fff; }
+.au2-hero-copy p { margin: 5px 0 0; font-size: 12.5px; line-height: 1.4; color: rgba(255, 255, 255, .72); }
+.au2-hero-copy.center { text-align: center; }
+
+.au2-perks {
+  position: relative; z-index: 2; display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px;
+}
+.au2-perks span {
+  display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 600;
+  color: rgba(255, 255, 255, .92); background: rgba(255, 255, 255, .1);
+  border: 1px solid rgba(255, 255, 255, .13); padding: 4px 9px; border-radius: 999px;
+  backdrop-filter: blur(8px);
+}
+.au2-perks svg { color: #d896ff; }
+
+/* Приподнятый светлый лист — заполняет 100% оставшейся высоты без пустот */
+.au2-sheet {
+  flex: 1; min-height: 0; background: #fff; border-radius: 26px 26px 0 0;
+  padding: 18px 18px 14px; display: flex; flex-direction: column; justify-content: space-between;
+  overflow-y: auto; overflow-x: hidden; scrollbar-width: none;
+  box-shadow: 0 -8px 28px rgba(15, 8, 28, .22);
+}
+.au2-sheet::-webkit-scrollbar { display: none; }
+.au2-sheet-main { display: flex; flex-direction: column; }
+.au2-sheet-main.otp { align-items: center; padding-top: 14px; }
+.au2-sheet-foot { margin-top: auto; padding-top: 12px; }
+
+/* Сегмент Телефон +90 / E-mail */
+.au2-seg {
+  position: relative; display: flex; background: #f2f2f7; border-radius: 13px;
+  padding: 3.5px; margin-bottom: 13px;
+}
+.au2-seg i {
+  position: absolute; top: 3.5px; bottom: 3.5px; left: 3.5px; width: calc(50% - 3.5px);
+  background: #fff; border-radius: 10px; box-shadow: 0 2px 6px rgba(24, 16, 40, .09);
+  transition: transform .24s cubic-bezier(.2, .8, .2, 1);
+}
+.au2-seg button { position: relative; z-index: 1; flex: 1; height: 35px; font-size: 13px; font-weight: 600; color: #767680; transition: color .2s; }
+.au2-seg button.on { color: #1b1b1f; font-weight: 700; }
+
+/* Поля ввода */
+.au2-row2 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 9px; }
+.au2-row2 > * { min-width: 0; }
+.au2-field { margin-bottom: 10px; min-width: 0; }
+.au2-flbl {
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 11.5px; font-weight: 700; color: #52525c; margin: 0 2px 5px;
+}
+.au2-inp {
+  display: flex; align-items: center; gap: 8px; height: 48px; padding: 0 11px; width: 100%; min-width: 0;
+  background: #f6f6fa; border: 1.5px solid #ededf3; border-radius: 13px;
+  transition: border-color .15s, background .15s, box-shadow .15s; cursor: text;
+}
+.au2-inp:focus-within { background: #fff; border-color: #ae33ff; box-shadow: 0 0 0 3.5px rgba(174, 51, 255, .13); }
+.au2-inp.ok { background: #fff; border-color: #c9ebd5; }
+.au2-inp.err { border-color: #e5484d; background: #fff7f7; animation: auShake .3s; }
+@keyframes auShake { 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
+.au2-inp input { flex: 1; width: 100%; min-width: 0; border: 0; background: none; font-size: 14.5px; color: #1b1b1f; font-weight: 500; }
+.au2-ic { color: #8e8e93; display: grid; place-items: center; flex: none; }
+.au2-eye { color: #8e8e93; display: grid; place-items: center; padding: 4px; }
+
+/* Фиксированный турецкий префикс TR +90 (без флагов) */
+.au2-tr {
+  display: inline-flex; align-items: center; gap: 5px; padding-right: 9px;
+  border-right: 1px solid #e2e2ea; flex: none;
+}
+.au2-tr em {
+  font-style: normal; font-size: 10px; font-weight: 800; color: #8b22d9;
+  background: #f3e6ff; padding: 2px 5px; border-radius: 5px; letter-spacing: .3px;
+}
+.au2-tr b { font-size: 14px; font-weight: 800; color: #1b1b1f; font-variant-numeric: tabular-nums; }
+
+.au2-note { margin: 4px 2px 0; font-size: 11px; color: #8e8e93; }
+.au2-link { font-size: 11.5px; font-weight: 700; color: #ae33ff; }
+
+.au-meter { display: flex; align-items: center; gap: 4px; margin: 6px 2px 2px; }
+.au-meter i { flex: 1; height: 3.5px; border-radius: 2px; background: #ececf0; transition: background .2s; }
+.au-meter span { font-size: 11px; font-weight: 700; margin-left: 6px; min-width: 58px; text-align: right; }
+.au-meter.l1 i:nth-child(-n+1) { background: #e5484d; } .au-meter.l1 span { color: #e5484d; }
+.au-meter.l2 i:nth-child(-n+2) { background: #e6a700; } .au-meter.l2 span { color: #c28b00; }
+.au-meter.l3 i { background: #1fa45a; } .au-meter.l3 span { color: #1a8f4c; }
+.au-err { display: flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 600; color: #e5484d; margin: 2px 2px 8px; }
+.au-spin { animation: spin .8s linear infinite; }
+
+/* Основная кнопка */
+.au2-btn {
+  width: 100%; height: 48px; border-radius: 14px; margin-top: 2px;
+  background: linear-gradient(135deg, #ba52ff 0%, #9222eb 100%); color: #fff;
+  font-size: 15px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+  box-shadow: 0 8px 20px rgba(174, 51, 255, .3); transition: transform .1s, box-shadow .2s, opacity .2s;
+}
+.au2-btn:active { transform: scale(.985); }
+.au2-btn.dis { background: #e6cdfd; box-shadow: none; }
+
+/* Быстрые чипы под кнопкой */
+.au2-quick { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 10px; }
+.au2-pill-btn {
+  height: 33px; padding: 0 12px; border-radius: 999px; background: #f4f4f8;
+  color: #484848; font-size: 12px; font-weight: 700;
+  display: inline-flex; align-items: center; gap: 5px;
+}
+.au2-pill-btn:disabled { opacity: .45; }
+.au2-pill-btn.demo { background: #f5e9ff; color: #8b22d9; }
+.au2-pill-btn.center { margin-top: 14px; }
+
+/* Соцсети + нижняя карточка регистрации */
+.au2-or { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; color: #a0a0aa; font-size: 11px; font-weight: 600; }
+.au2-or::before, .au2-or::after { content: ''; flex: 1; height: 1px; background: #ededf3; }
+
+.au2-social-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; margin-bottom: 12px; }
+.au2-social {
+  width: 100%; height: 44px; border-radius: 12px;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  font-size: 13.5px; font-weight: 700; transition: transform .1s;
+}
+.au2-social:active { transform: scale(.98); }
+.au2-social img { width: 17px; height: 17px; }
+.au2-social.g { background: #fff; border: 1.5px solid #e4e4ec; color: #1b1b1f; }
+.au2-social.a { background: #16161a; color: #fff; }
+.au2-social.a img { filter: invert(1); }
+
+.au2-cta-card {
+  width: 100%; display: flex; align-items: center; gap: 10px; text-align: left;
+  padding: 11px 12px; border-radius: 15px;
+  background: linear-gradient(135deg, #faf4ff 0%, #f3e6ff 100%);
+  border: 1px solid #e6cdfd; transition: transform .1s;
+}
+.au2-cta-card:active { transform: scale(.985); }
+.au2-cta-ic {
+  width: 36px; height: 36px; border-radius: 11px; background: #ae33ff; color: #fff;
+  display: grid; place-items: center; flex: none;
+}
+.au2-cta-t { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.au2-cta-t b { font-size: 13px; font-weight: 800; color: #1b1b1f; }
+.au2-cta-t small { font-size: 11px; color: #6b5a80; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.au2-cta-go {
+  flex: none; display: inline-flex; align-items: center; gap: 3px;
+  background: #fff; color: #8b22d9; font-size: 12px; font-weight: 800;
+  padding: 6px 10px; border-radius: 10px; box-shadow: 0 2px 6px rgba(100, 24, 160, .1);
+}
+
+.au2-consent { margin: 9px 4px 0; font-size: 11px; color: #9a9aa2; text-align: center; }
+.au2-consent a, .au2-check a { color: #ae33ff; font-weight: 600; cursor: pointer; }
+.au2-foot-line { margin-top: 10px; text-align: center; font-size: 13px; color: #6b6b74; }
+.au2-foot-line button { font-weight: 700; color: #ae33ff; }
+
+.au2-check {
+  display: flex; align-items: flex-start; gap: 9px; font-size: 11.5px; line-height: 1.45;
+  color: #5f5f68; cursor: pointer; padding: 10px 11px; border-radius: 13px;
+  background: #f8f7fc; border: 1px solid #eceaf5; margin-top: 4px;
+}
+.au2-check.err { border-color: #f3b4b6; background: #fff7f7; }
+.au2-check input { display: none; }
+.au2-check .box {
+  width: 19px; height: 19px; border-radius: 6px; border: 1.5px solid #c8c8d2;
+  background: #fff; display: grid; place-items: center; flex: none; color: #fff; margin-top: 1px; transition: all .15s;
+}
+.au2-check input:checked + .box { background: #ae33ff; border-color: #ae33ff; }
+
+/* OTP экран */
+.au2-otp-hero-ic {
+  position: relative; z-index: 2; width: 54px; height: 54px; border-radius: 17px;
+  background: rgba(174, 51, 255, .24); border: 1px solid rgba(216, 150, 255, .35);
+  color: #e4b5ff; display: grid; place-items: center; margin: 4px auto 12px;
+}
+.au2-to-chip {
+  position: relative; z-index: 2; display: inline-block; margin-top: 10px;
+  font-size: 13px; font-weight: 700; color: #fff; background: rgba(255, 255, 255, .12);
+  border: 1px solid rgba(255, 255, 255, .16); padding: 5px 14px; border-radius: 999px;
+  font-variant-numeric: tabular-nums;
+}
+.au2-otp { position: relative; display: flex; justify-content: center; gap: 11px; margin: 6px 0 6px; cursor: text; }
+.au2-otp span {
+  width: 62px; height: 68px; border-radius: 16px; background: #f6f6fa;
+  border: 1.5px solid #e8e8f0; display: grid; place-items: center;
+  font-size: 28px; font-weight: 800; color: #1b1b1f; font-variant-numeric: tabular-nums; transition: all .15s;
+}
+.au2-otp span.cur { border-color: #ae33ff; background: #fff; box-shadow: 0 0 0 4px rgba(174, 51, 255, .14); }
+.au2-otp span.fill { background: #faf5ff; border-color: #d4a6ff; }
+.au2-otp.err span { border-color: #e5484d; animation: auShake .3s; }
+.au2-otp input { position: absolute; inset: 0; opacity: 0; font-size: 16px; }
+.au2-resend { width: 100%; height: 40px; margin-top: 6px; font-size: 13px; font-weight: 600; color: #8b22d9; }
+.au2-resend:disabled { color: #a8a8b2; }

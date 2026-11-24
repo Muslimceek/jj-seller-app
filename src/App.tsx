@@ -6,6 +6,7 @@ import {
   BrandDocs, Rules, Support, Faq, Agreements, AgreementText, Simple, Settings,
 } from './screens'
 import { ProductForm } from './ProductForm'
+import { Auth } from './Auth'
 import { ProductAnalytics } from './ProductAnalytics'
 import { detectLang, getDict, saveLang, type Lang } from './i18n'
 
@@ -56,6 +57,15 @@ export default function App() {
   }
 
   const t = getDict(lang)
+  const [authed, setAuthed] = useState(() => localStorage.getItem('jj-seller-auth') === '1')
+  const login = (shop?: string) => {
+    localStorage.setItem('jj-seller-auth', '1')
+    if (shop) localStorage.setItem('jj-seller-shop', shop)
+    setStack([])
+    setTab('home')
+    setAuthed(true)
+  }
+  const logout = () => { localStorage.removeItem('jj-seller-auth'); setStack([]); setSheet(null); setAuthed(false) }
 
   const nav: Nav = {
     push: (name, params) => { setSheet(null); setStack((s) => [...s, { name, params }]) },
@@ -66,6 +76,7 @@ export default function App() {
     lang,
     setLang,
     t,
+    logout,
   }
 
   const TABS = [
@@ -86,11 +97,13 @@ export default function App() {
     <NavCtx.Provider value={nav}>
       <div className="device">
         <div className="phone">
-          <div className={'statusbar' + (!top && tab === 'home' ? ' dark' : '')}>
+          <div className={'statusbar' + ((!authed && !top) || (authed && !top && tab === 'home') ? ' dark' : '')}>
             <Clock lang={lang} />
             <span className="icons"><Wifi size={14} /><Signal size={14} /><BatteryFull size={18} /></span>
           </div>
-          {top ? (
+          {!authed && !top ? (
+            <div className="screen"><Auth onDone={login} /></div>
+          ) : top ? (
             <div className="screen enter" key={stack.length + top.name}>{render(top, t)}</div>
           ) : (
             <>

@@ -347,6 +347,12 @@ export interface Dict {
     qGreatSub: string
     qLowSub: string
     fillBtn: string
+    errCat: string
+    errPhoto: string
+    errName: string
+    errSize: string
+    errPrice: string
+    errStock: string
     hideProduct: string
     hideProductSub: string
     deleteProduct: string
@@ -675,6 +681,12 @@ const TR: Dict = {
     qGreatSub: 'Harika — ürün aramada üst sıralarda görünür',
     qLowSub: 'Eksik maddelere dokunup hızlıca tamamlayın',
     fillBtn: 'Doldur',
+    errCat: 'Kategori seçin',
+    errPhoto: 'En az 1 fotoğraf ekleyin',
+    errName: 'Ürün adını girin',
+    errSize: 'En az 1 beden seçin',
+    errPrice: 'Fiyat girin',
+    errStock: 'Stok adedini girin',
     hideProduct: 'Ürünü gizle',
     hideProductSub: 'Alıcılar ürünü görmez, stok korunur',
     deleteProduct: 'Ürünü sil',
@@ -1010,6 +1022,12 @@ const RU: Dict = {
     qGreatSub: 'Отлично — карточка будет выше в поиске',
     qLowSub: 'Нажмите на незаполненный пункт, чтобы дополнить',
     fillBtn: 'Заполнить',
+    errCat: 'Выберите категорию',
+    errPhoto: 'Добавьте хотя бы 1 фото',
+    errName: 'Введите название товара',
+    errSize: 'Выберите хотя бы 1 размер',
+    errPrice: 'Укажите цену',
+    errStock: 'Укажите остаток',
     hideProduct: 'Скрыть товар',
     hideProductSub: 'Покупатели не увидят товар, остатки сохранятся',
     deleteProduct: 'Удалить товар',
@@ -1345,6 +1363,12 @@ const KK: Dict = {
     qGreatSub: 'Тамаша — тауар іздеуде жоғары тұрады',
     qLowSub: 'Толтырылмаған жолды басып жылдам түзетіңіз',
     fillBtn: 'Толтыру',
+    errCat: 'Санатты таңдаңыз',
+    errPhoto: 'Кемінде 1 фото қосыңыз',
+    errName: 'Тауар атауын енгізіңіз',
+    errSize: 'Кемінде 1 өлшем таңдаңыз',
+    errPrice: 'Бағаны көрсетіңіз',
+    errStock: 'Қалдықты көрсетіңіз',
     hideProduct: 'Тауарды жасыру',
     hideProductSub: 'Сатып алушылар көрмейді, қор сақталады',
     deleteProduct: 'Тауарды жою',

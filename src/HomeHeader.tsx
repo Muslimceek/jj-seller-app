@@ -22,15 +22,18 @@ export function HomeHero() {
   const [hidden, setHidden] = useState(false)
   const money = (n: number) => (hidden ? '••• •••' : fmt(n))
   const curLang = LANG_META.find((m) => m.code === nav.lang) ?? LANG_META[0]
+  const savedShop = (() => { try { return localStorage.getItem('jj-seller-shop') || '' } catch { return '' } })()
+  const storeTitle = savedShop || `${seller.name} ${t.home.storeSuffix}`
+  const storeLetter = (savedShop || seller.name)[0]?.toUpperCase() || 'J'
 
   return (
     <div className="hero">
       <div className="hero-top">
         <button className="hero-store" onClick={() => nav.tab('profile')}>
-          <span className="hero-av">{seller.name[0]}</span>
+          <span className="hero-av">{storeLetter}</span>
           <div className="hero-store-t">
             <div className="hero-hi">{t.home.welcome}</div>
-            <div className="hero-name">{seller.name} {t.home.storeSuffix}</div>
+            <div className="hero-name">{storeTitle}</div>
           </div>
         </button>
         <button className="hero-lang" onClick={() => nav.sheet(<LangSheet />)} aria-label={t.language}>

@@ -14,6 +14,7 @@ export interface Nav {
   lang: Lang
   setLang: (l: Lang) => void
   t: Dict
+  logout?: () => void
 }
 export const NavCtx = createContext<Nav>(null as any)
 export const useNav = () => useContext(NavCtx)

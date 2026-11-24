@@ -216,12 +216,12 @@ export function ProductForm({ edit }: { edit?: Product }) {
   const tableName = (id: string) => pf.sizeTableNames[id] ?? id
 
   const errs = {
-    cat: !cat ? pf.heads[0] : '',
-    photo: photos.length === 0 ? pf.dropTitle : '',
-    name: name.trim().length < 3 ? pf.prodName : '',
-    size: table.id !== 'one' && selRows.length === 0 ? pf.sizesTitle : '',
-    price: priceN <= 0 ? pf.priceTitle : '',
-    stock: totalStock <= 0 ? pf.stockTitle : '',
+    cat: !cat ? pf.errCat : '',
+    photo: photos.length === 0 ? pf.errPhoto : '',
+    name: name.trim().length < 3 ? pf.errName : '',
+    size: table.id !== 'one' && selRows.length === 0 ? pf.errSize : '',
+    price: priceN <= 0 ? pf.errPrice : '',
+    stock: totalStock <= 0 ? pf.errStock : '',
   }
   const stepErr = [errs.cat, errs.photo, errs.name, errs.size, errs.price || errs.stock, '']
   const checks = [
