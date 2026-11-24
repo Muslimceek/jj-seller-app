@@ -8,6 +8,7 @@ import {
 import { ProductForm } from './ProductForm'
 import { Auth } from './Auth'
 import { ProductAnalytics } from './ProductAnalytics'
+import { resetHomeBalanceAnim } from './HomeHeader'
 import { detectLang, getDict, saveLang, type Lang } from './i18n'
 
 function render(r: Route, t: ReturnType<typeof getDict>): ReactNode {
@@ -56,16 +57,27 @@ export default function App() {
     saveLang(l)
   }
 
+  useEffect(() => {
+    document.documentElement.lang = lang
+  }, [lang])
+
   const t = getDict(lang)
   const [authed, setAuthed] = useState(() => localStorage.getItem('jj-seller-auth') === '1')
   const login = (shop?: string) => {
     localStorage.setItem('jj-seller-auth', '1')
     if (shop) localStorage.setItem('jj-seller-shop', shop)
+    resetHomeBalanceAnim()
     setStack([])
     setTab('home')
     setAuthed(true)
   }
-  const logout = () => { localStorage.removeItem('jj-seller-auth'); setStack([]); setSheet(null); setAuthed(false) }
+  const logout = () => {
+    localStorage.removeItem('jj-seller-auth')
+    resetHomeBalanceAnim()
+    setStack([])
+    setSheet(null)
+    setAuthed(false)
+  }
 
   const nav: Nav = {
     push: (name, params) => { setSheet(null); setStack((s) => [...s, { name, params }]) },
@@ -88,9 +100,10 @@ export default function App() {
   ]
 
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') { if (sheet) setSheet(null); else nav.pop() } }
-    window.addEventListener('keydown', onKey); return () => window.removeEventListener('keydown', onKey)
-  })
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') { if (sheet) setSheet(null); else setStack((s) => s.slice(0, -1)) } }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [sheet])
 
   const top = stack[stack.length - 1]
   return (
@@ -111,7 +124,7 @@ export default function App() {
               <nav className="tabbar five">
                 {TABS.map(({ k, l, ic: Ic }) => (
                   <button key={k} className={tab === k ? 'on' : ''} onClick={() => setTab(k)}>
-                    <Ic size={21} strokeWidth={tab === k ? 2.1 : 1.65} />
+                    <Ic size={22} strokeWidth={tab === k ? 2.2 : 1.75} />
                     <span>{l}</span>
                   </button>
                 ))}

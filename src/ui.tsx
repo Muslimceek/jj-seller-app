@@ -1,5 +1,5 @@
-import { createContext, useContext, type ReactNode } from 'react'
-import { ChevronLeft, X, Check, Bell, Sparkles, MapPin, ChevronRight, ShoppingBag, QrCode } from 'lucide-react'
+import { createContext, useContext, useRef, useState, type ReactNode } from 'react'
+import { ChevronLeft, X, Check, Bell, Sparkles, MapPin, ChevronRight, ShoppingBag } from 'lucide-react'
 import { fmt, orders, stats, type Period } from './data'
 import { getDict, LANG_META, type Dict, type Lang } from './i18n'
 
@@ -61,7 +61,7 @@ export function NotificationsSheet() {
             <div className="notif-loc">
               <MapPin size={12} />
               <span>{o.city}, {o.streetHouse}, {o.apartment}</span>
-              <em className="notif-qr-tag"><QrCode size={10} />QR</em>
+              <em className="notif-cc-tag">{o.countryCode}</em>
             </div>
           </div>
           <ChevronRight size={16} className="notif-arr" />
@@ -113,6 +113,99 @@ export function ListSheet({ title, options, value, onPick }: { title: string; op
 }
 
 export const LANGS = LANG_META.map((m) => [m.code, m.label] as [Lang, string])
+
+/* ---------- Свайп-переключатель языка TR · RU · KZ (смах влево / вправо пальцем + тап) ---------- */
+export function SwipeLangBar({ variant = 'glass', fullLabels = false }: { variant?: 'glass' | 'light'; fullLabels?: boolean }) {
+  const nav = useNav()
+  const trackRef = useRef<HTMLDivElement>(null)
+  const dragRef = useRef<{ active: boolean; startX: number; moved: boolean; startIdx: number; captured: boolean } | null>(null)
+  const justDraggedRef = useRef(false)
+  const [dragPos, setDragPos] = useState<number | null>(null)
+
+  const curIdx = Math.max(0, LANG_META.findIndex((m) => m.code === nav.lang))
+  const pos = dragPos ?? curIdx
+
+  const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!trackRef.current) return
+    dragRef.current = { active: true, startX: e.clientX, moved: false, startIdx: curIdx, captured: false }
+  }
+
+  const onPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    const st = dragRef.current
+    const el = trackRef.current
+    if (!st?.active || !el) return
+    const dx = e.clientX - st.startX
+    if (!st.moved && Math.abs(dx) > 7) {
+      st.moved = true
+      if (!st.captured) {
+        st.captured = true
+        try { el.setPointerCapture(e.pointerId) } catch {}
+      }
+    }
+    if (!st.moved) return
+    const slotW = el.clientWidth / LANG_META.length
+    const nextPos = Math.max(0, Math.min(LANG_META.length - 1, st.startIdx + dx / slotW))
+    setDragPos(nextPos)
+  }
+
+  const finishDrag = (e: React.PointerEvent<HTMLDivElement>) => {
+    const st = dragRef.current
+    const el = trackRef.current
+    if (!st?.active) return
+    dragRef.current = null
+    if (st.captured) {
+      try { el?.releasePointerCapture(e.pointerId) } catch {}
+    }
+    if (st.moved && el) {
+      const dx = e.clientX - st.startX
+      const slotW = el.clientWidth / LANG_META.length
+      let targetIdx = Math.round(st.startIdx + dx / slotW)
+      if (targetIdx === st.startIdx && Math.abs(dx) > 16) {
+        targetIdx = st.startIdx + (dx > 0 ? 1 : -1)
+      }
+      targetIdx = Math.max(0, Math.min(LANG_META.length - 1, targetIdx))
+      nav.setLang(LANG_META[targetIdx].code)
+      justDraggedRef.current = true
+      setTimeout(() => { justDraggedRef.current = false }, 80)
+    }
+    setDragPos(null)
+  }
+
+  return (
+    <div
+      ref={trackRef}
+      className={`sw-lang ${variant}${dragPos !== null ? ' dragging' : ''}${fullLabels ? ' full' : ''}`}
+      role="group"
+      aria-label={nav.t.language}
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={finishDrag}
+      onPointerCancel={finishDrag}
+    >
+      <span
+        className="sw-lang-thumb"
+        style={{ transform: `translateX(${pos * 100}%)` }}
+      />
+      {LANG_META.map((m, i) => {
+        const active = Math.round(pos) === i
+        return (
+          <button
+            key={m.code}
+            type="button"
+            className={active ? 'on' : ''}
+            onClick={() => {
+              if (justDraggedRef.current) return
+              nav.setLang(m.code)
+            }}
+          >
+            {fullLabels ? m.label : m.short}
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
 export function LangSheet() {
   const nav = useNav()
   const dict = getDict(nav.lang)

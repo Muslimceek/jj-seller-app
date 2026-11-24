@@ -1,11 +1,10 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   Bell, ChevronRight, ArrowUpRight, ArrowDownRight, Eye, EyeOff, FileWarning, Plus,
-  Activity, ShoppingBag, Clock, AlertTriangle, Wallet, Globe,
+  Activity, ShoppingBag, Clock, AlertTriangle, Wallet, Globe2,
 } from 'lucide-react'
-import { fmt, seller, orders, products, stats, type Period } from './data'
-import { LangSheet, NotificationsSheet, useNav } from './ui'
-import { LANG_META } from './i18n'
+import { fmt, loadSellerProfile, seller, orders, products, stats, type Period } from './data'
+import { NotificationsSheet, SwipeLangBar, useNav } from './ui'
 
 export let ordersStartTab = 'all'
 export const takeOrdersTab = () => { const t = ordersStartTab; ordersStartTab = 'all'; return t }
@@ -15,19 +14,46 @@ export let productsStartTab = 'all'
 export const takeProductsTab = () => { const t = productsStartTab; productsStartTab = 'all'; return t }
 export const goProducts = (nav: ReturnType<typeof useNav>, t: string) => { productsStartTab = t; nav.tab('products') }
 
-/* ---------- Тёмная шапка + баланс + переключатель языка ---------- */
+/* Анимация баланса проигрывается красиво ОДИН РАЗ при каждом новом открытии / входе */
+let balanceAnimatedThisOpen = false
+export const resetHomeBalanceAnim = () => { balanceAnimatedThisOpen = false }
+
+/* ---------- Тёмная шапка + приветствие + одноразовая анимация баланса + свайп языка ---------- */
 export function HomeHero() {
   const nav = useNav()
   const { t } = nav
   const [hidden, setHidden] = useState(false)
+  const [shouldAnim] = useState(() => !balanceAnimatedThisOpen)
+  const [displayBal, setDisplayBal] = useState(() => (balanceAnimatedThisOpen ? seller.balance : 0))
+
+  useEffect(() => {
+    if (balanceAnimatedThisOpen) {
+      setDisplayBal(seller.balance)
+      return
+    }
+    balanceAnimatedThisOpen = true
+    const target = seller.balance
+    const duration = 1150
+    const start = performance.now()
+    let raf = 0
+
+    const tick = (now: number) => {
+      const p = Math.min(1, (now - start) / duration)
+      const eased = 1 - Math.pow(1 - p, 3)
+      setDisplayBal(Math.round(target * eased))
+      if (p < 1) raf = requestAnimationFrame(tick)
+    }
+    raf = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(raf)
+  }, [])
+
   const money = (n: number) => (hidden ? '••• •••' : fmt(n))
-  const curLang = LANG_META.find((m) => m.code === nav.lang) ?? LANG_META[0]
-  const savedShop = (() => { try { return localStorage.getItem('jj-seller-shop') || '' } catch { return '' } })()
-  const storeTitle = savedShop || `${seller.name} ${t.home.storeSuffix}`
-  const storeLetter = (savedShop || seller.name)[0]?.toUpperCase() || 'J'
+  const prof = loadSellerProfile()
+  const storeTitle = prof.shop || `${prof.name} ${t.home.storeSuffix}`
+  const storeLetter = (storeTitle || 'J')[0]?.toUpperCase() || 'J'
 
   return (
-    <div className="hero">
+    <div className={'hero' + (shouldAnim ? ' anim-in' : '')}>
       <div className="hero-top">
         <button className="hero-store" onClick={() => nav.tab('profile')}>
           <span className="hero-av">{storeLetter}</span>
@@ -36,34 +62,37 @@ export function HomeHero() {
             <div className="hero-name">{storeTitle}</div>
           </div>
         </button>
-        <button className="hero-lang" onClick={() => nav.sheet(<LangSheet />)} aria-label={t.language}>
-          <Globe size={13} />
-          <span>{curLang.short}</span>
-        </button>
+        <SwipeLangBar variant="glass" />
         <button className="hero-ic" onClick={() => nav.sheet(<NotificationsSheet />)} aria-label="Notifications">
-          <Bell size={19} strokeWidth={1.8} />
+          <Bell size={19} strokeWidth={1.9} />
           <i className="hero-dot" />
         </button>
       </div>
 
-      <section className="bal">
+      <section className={'bal' + (shouldAnim ? ' anim-in' : '')}>
+        {shouldAnim && <span className="bal-shine" aria-hidden />}
         <button className="bal-main" onClick={() => nav.push('finance')}>
           <span className="bal-l">{t.home.balance}</span>
           <span className="bal-v">
-            {money(seller.balance)}<small>₸</small>
+            {money(displayBal)}<small>₸</small>
             <span
               className="bal-eye"
               role="button"
               aria-label="Toggle balance"
               onClick={(e) => { e.stopPropagation(); setHidden(!hidden) }}
             >
-              {hidden ? <EyeOff size={17} /> : <Eye size={17} />}
+              {hidden ? <EyeOff size={18} /> : <Eye size={18} />}
             </span>
           </span>
-          <span className="bal-w">{money(seller.balance)} ₸ {t.home.available}</span>
+          <span className="bal-w">{money(displayBal)} ₸ {t.home.available}</span>
         </button>
         <button className="bal-btn" onClick={() => nav.push('withdraw')}>{t.home.withdraw}</button>
       </section>
+
+      <div className="hero-markets">
+        <Globe2 size={12} />
+        <span>TR → {prof.countries.join(' · ')}</span>
+      </div>
     </div>
   )
 }
@@ -73,9 +102,9 @@ export function DocsAlert() {
   const { t } = nav
   return (
     <button className="bc-alert" onClick={() => nav.push('documents')}>
-      <span className="bc-alert-ic"><FileWarning size={16} /></span>
+      <span className="bc-alert-ic"><FileWarning size={17} /></span>
       <span><b>{t.home.docsTitle}</b>{t.home.docsSub}</span>
-      <ChevronRight size={15} />
+      <ChevronRight size={16} />
     </button>
   )
 }
@@ -108,12 +137,12 @@ export function Actions() {
           const Ic = c.ic
           return (
             <button key={c.l} className={'ak-tile' + (c.hot ? ' hot' : '')} onClick={c.go}>
-              <span className="ak-ic" style={{ background: c.bg, color: c.c }}><Ic size={17} /></span>
+              <span className="ak-ic" style={{ background: c.bg, color: c.c }}><Ic size={18} /></span>
               <div className="ak-meta">
                 <span>{c.l}</span>
                 <b>{c.v}</b>
               </div>
-              <ChevronRight size={14} className="ak-arr" />
+              <ChevronRight size={15} className="ak-arr" />
             </button>
           )
         })}

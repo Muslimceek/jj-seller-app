@@ -4,17 +4,16 @@ import {
   Archive, Shapes, Pencil, EyeOff, Eye, MoreHorizontal, SearchX, Truck, ArrowDownLeft, ArrowUpRight,
   CreditCard, Upload, Phone, Mail, Headphones, LogOut, CircleCheck, AlertCircle, History, ChevronUp,
   X, Wallet, FileCheck2, Award, Star, Settings as SettingsIc, HelpCircle, ShieldCheck, FileText,
-  Globe, Check, PackageCheck, MapPin, Copy, Landmark, User, Building2, Navigation, QrCode,
+  Globe, Check, PackageCheck, MapPin, Copy, Landmark, User, Building2, Navigation, Store, Lock, Trash2,
 } from 'lucide-react'
 import {
   orders as INITIAL_ORDERS, products as INITIAL_PRODUCTS, popular, seller, cargoAddress, transactions, stats,
-  type Order, type OrderStatus, fmt,
+  ALL_COUNTRIES, loadSellerProfile, saveSellerProfile,
+  type CountryCode, type Order, type OrderStatus, fmt,
 } from './data'
-import { useNav, T, TopBar, LangSheet, BellBtn, Sheet } from './ui'
+import { useNav, T, TopBar, LangSheet, BellBtn, Sheet, SwipeLangBar } from './ui'
 import { HomeHero, DocsAlert, Actions, SalesPerformance, goOrders, takeOrdersTab, takeProductsTab } from './HomeHeader'
 import { AnalyticsPanel } from './AnalyticsPanel'
-import { CargoQrCard, CargoQrSheet } from './CargoQrCard'
-import { LANG_META } from './i18n'
 
 const STATUS_STYLE: Record<OrderStatus, string> = {
   new: 'purple',
@@ -53,8 +52,8 @@ function OrderCard({
             <span className={`st-pill ${cls}`}>{stLabel}</span>
           </div>
           <div className="oc-loc">
-            <MapPin size={11} />
-            <span>{o.city} · {o.buyerName}</span>
+            <MapPin size={12} />
+            <span>{o.city} ({o.countryCode}) · {o.buyerName}</span>
           </div>
           <div className="oc-mid">
             <span>#{o.id.slice(-6)} · {o.qty} {t.pieces}</span>
@@ -63,21 +62,18 @@ function OrderCard({
           <div className="oc-date">{o.date}</div>
         </div>
       </button>
-      {o.status !== 'cancelled' && (
+      {onAdvance && (o.status === 'new' || o.status === 'processing') && (
         <div className="oc-foot">
-          {onAdvance && o.status === 'new' && (
+          {o.status === 'new' && (
             <button className="oc-act primary" onClick={() => onAdvance(o.id, 'processing')}>
               <Check size={14} strokeWidth={2.5} />{t.orders.confirm}
             </button>
           )}
-          {onAdvance && o.status === 'processing' && (
+          {o.status === 'processing' && (
             <button className="oc-act" onClick={() => onAdvance(o.id, 'shipped')}>
               <Truck size={14} />{t.orders.ship}
             </button>
           )}
-          <button className="oc-act qr" onClick={() => nav.sheet(<CargoQrSheet order={o} />)}>
-            <QrCode size={14} />{t.cargoQrBtn}
-          </button>
         </div>
       )}
     </div>
@@ -382,7 +378,8 @@ export function OrderDetail({ o }: { o: Order }) {
   const cls = STATUS_STYLE[status]
   const steps: OrderStatus[] = ['new', 'processing', 'shipped', 'delivered']
   const curIdx = steps.indexOf(status)
-  const fullAddress = `Казахстан, ${o.city}, ${o.streetHouse}, ${o.apartment}`
+  const countryName = t.countries[o.countryCode]
+  const fullAddress = `${countryName}, ${o.city}, ${o.streetHouse}, ${o.apartment}`
 
   return (
     <div className="screen pg-soft">
@@ -407,7 +404,7 @@ export function OrderDetail({ o }: { o: Order }) {
           {(status === 'new' || status === 'processing') && (
             <button
               className="btn"
-              style={{ height: 42, marginTop: 12, fontSize: 14 }}
+              style={{ height: 46, marginTop: 12, fontSize: 15 }}
               onClick={() => {
                 const next: OrderStatus = status === 'new' ? 'processing' : 'shipped'
                 setStatus(next)
@@ -419,10 +416,7 @@ export function OrderDetail({ o }: { o: Order }) {
           )}
         </div>
 
-        {/* Cargo API QR Label Card — auto-generated for incoming orders */}
-        <CargoQrCard order={o} status={status} />
-
-        {/* Visual Location & Delivery Address Card (Apple Maps style) */}
+        {/* Visual Location & Delivery Address Card */}
         <div className="od-map-card">
           <div className="od-map-bg">
             <div className="od-map-grid" />
@@ -433,7 +427,7 @@ export function OrderDetail({ o }: { o: Order }) {
             <div className="od-map-city">
               <Navigation size={11} />
               <b>{o.city}</b>
-              <span>· KZ</span>
+              <span>· {o.countryCode}</span>
             </div>
             <span className="od-map-tag">{o.addressLabel}</span>
           </div>
@@ -488,7 +482,7 @@ export function OrderDetail({ o }: { o: Order }) {
           <div className="od-route">
             <div><small>İstanbul</small><b>Laleli Cargo</b></div>
             <span className="od-route-line"><i /></span>
-            <div style={{ textAlign: 'right' }}><small>Kazakhstan</small><b>{o.city}</b></div>
+            <div style={{ textAlign: 'right' }}><small>{countryName}</small><b>{o.city}</b></div>
           </div>
           <div className="od-cargo-box">
             <div className="od-cargo-t">
@@ -633,13 +627,13 @@ export function ProductDetail({ p }: { p: (typeof INITIAL_PRODUCTS)[number] }) {
   )
 }
 
-/* ---------- Profil (БЕЗ ФЛАГОВ!) ---------- */
+/* ---------- Profil (БЕЗ ФЛАГОВ + свайп-переключатель языка!) ---------- */
 export function Profile() {
   const nav = useNav()
   const { t } = nav
-  const savedShop = (() => { try { return localStorage.getItem('jj-seller-shop') || '' } catch { return '' } })()
-  const storeTitle = savedShop || `${seller.name} ${t.home.storeSuffix}`
-  const storeLetter = (savedShop || seller.name)[0]?.toUpperCase() || 'J'
+  const prof = loadSellerProfile()
+  const storeTitle = prof.shop || `${prof.name} ${t.home.storeSuffix}`
+  const storeLetter = (storeTitle || 'J')[0]?.toUpperCase() || 'J'
 
   const business = [
     { l: t.profile.finance, r: 'finance', ic: Wallet, bg: '#e8f7ee', c: '#1a8f4c', val: `${fmt(seller.balance)} ₸` },
@@ -666,10 +660,13 @@ export function Profile() {
           <span className="prof-av">{storeLetter}</span>
           <div className="prof-info">
             <b>{storeTitle}</b>
-            <small>{seller.phone}</small>
-            <span className="prof-ver"><CheckCircle2 size={11} />{t.profile.storeActive}</span>
+            <small>{prof.phone} · {prof.district}</small>
+            <div className="prof-tags">
+              <span className="prof-ver"><CheckCircle2 size={11} />{t.profile.storeActive}</span>
+              <span className="prof-geo">{prof.countries.join(' · ')}</span>
+            </div>
           </div>
-          <span className="prof-ed"><Pencil size={15} /></span>
+          <span className="prof-ed"><Pencil size={16} /></span>
         </button>
 
         <div className="prof-stats">
@@ -693,39 +690,32 @@ export function Profile() {
             const Ic = item.ic
             return (
               <button key={item.r} className="prof-row" onClick={() => nav.push(item.r)}>
-                <span className="prof-ic" style={{ background: item.bg, color: item.c }}><Ic size={17} /></span>
+                <span className="prof-ic" style={{ background: item.bg, color: item.c }}><Ic size={18} /></span>
                 <span className="prof-lbl">{item.l}</span>
                 {item.val && <em className="prof-val">{item.val}</em>}
-                <ChevronRight size={16} className="prof-arr" />
+                <ChevronRight size={17} className="prof-arr" />
               </button>
             )
           })}
         </div>
 
-        {/* Язык БЕЗ флагов — чистый современный сегмент */}
+        {/* Язык БЕЗ флагов — свайп влево/вправо */}
         <div className="prof-sec">{t.profile.secApp}</div>
         <div className="prof-group">
           <div className="prof-lang-box">
             <div className="prof-lang-h">
-              <span className="prof-ic" style={{ background: '#f5e8ff', color: '#ae33ff' }}><Globe size={17} /></span>
-              <span className="prof-lbl">{t.language}</span>
+              <span className="prof-ic" style={{ background: '#f5e8ff', color: '#ae33ff' }}><Globe size={18} /></span>
+              <div className="prof-lang-meta">
+                <span className="prof-lbl">{t.language}</span>
+                <small>{t.swipeLangHint}</small>
+              </div>
             </div>
-            <div className="prof-lang-seg">
-              {LANG_META.map((m) => (
-                <button
-                  key={m.code}
-                  className={nav.lang === m.code ? 'on' : ''}
-                  onClick={() => nav.setLang(m.code)}
-                >
-                  {m.label}
-                </button>
-              ))}
-            </div>
+            <SwipeLangBar variant="light" fullLabels />
           </div>
           <button className="prof-row" onClick={() => nav.push('settings')}>
-            <span className="prof-ic" style={{ background: '#f1f1f5', color: '#484848' }}><SettingsIc size={17} /></span>
+            <span className="prof-ic" style={{ background: '#f1f1f5', color: '#484848' }}><SettingsIc size={18} /></span>
             <span className="prof-lbl">{t.profile.settings}</span>
-            <ChevronRight size={16} className="prof-arr" />
+            <ChevronRight size={17} className="prof-arr" />
           </button>
         </div>
 
@@ -735,42 +725,218 @@ export function Profile() {
             const Ic = item.ic
             return (
               <button key={item.r} className="prof-row" onClick={() => nav.push(item.r)}>
-                <span className="prof-ic" style={{ background: item.bg, color: item.c }}><Ic size={17} /></span>
+                <span className="prof-ic" style={{ background: item.bg, color: item.c }}><Ic size={18} /></span>
                 <span className="prof-lbl">{item.l}</span>
-                <ChevronRight size={16} className="prof-arr" />
+                <ChevronRight size={17} className="prof-arr" />
               </button>
             )
           })}
         </div>
 
         <button className="prof-logout" onClick={() => (nav.logout ? nav.logout() : nav.toast(t.profile.logoutToast))}>
-          <LogOut size={16} />{t.profile.logout}
+          <LogOut size={17} />{t.profile.logout}
         </button>
-        <div style={{ textAlign: 'center', color: 'var(--ink3)', fontSize: 12, margin: '14px 0 8px' }}>JJ Seller · v1.2.0</div>
+        <div style={{ textAlign: 'center', color: 'var(--ink3)', fontSize: 12, margin: '14px 0 8px' }}>JJ Seller · v1.3.0</div>
       </div>
     </div>
   )
 }
 
+/* ---------- Редактировать профиль (современный крупный мобильный экран с сохранением!) ---------- */
 export function ProfileEdit() {
   const nav = useNav()
   const { t } = nav
-  const [name, setName] = useState(seller.name)
-  const [sur, setSur] = useState('')
+  const ep = t.editProfile
+  const initial = loadSellerProfile()
+  const [shop, setShop] = useState(initial.shop)
+  const [name, setName] = useState(initial.name)
+  const [sur, setSur] = useState(initial.surname)
+  const [district, setDistrict] = useState(initial.district)
+  const [phone, setPhone] = useState(initial.phone.replace(/^\+90\s*/, ''))
+  const [email, setEmail] = useState(initial.email)
+  const [countries, setCountries] = useState<CountryCode[]>(initial.countries)
+
+  const toggleCountry = (cc: CountryCode) => {
+    setCountries((cur) => {
+      if (cur.includes(cc)) return cur.length > 1 ? cur.filter((x) => x !== cc) : cur
+      return [...cur, cc]
+    })
+  }
+
+  const save = () => {
+    const cleanShop = shop.trim() || initial.shop
+    const cleanName = name.trim() || initial.name
+    const cleanPhone = phone.trim() ? `+90 ${phone.trim()}` : initial.phone
+    saveSellerProfile({
+      shop: cleanShop,
+      name: cleanName,
+      surname: sur.trim(),
+      district: district.trim() || 'İstanbul · Laleli',
+      phone: cleanPhone,
+      email: email.trim() || initial.email,
+      countries,
+    })
+    nav.toast(t.saved)
+    nav.pop()
+  }
+
+  const openPasswordSheet = () => {
+    nav.sheet(
+      <Sheet title={ep.passTitle}>
+        <div className="pe-sheet-form">
+          <label className="pe-field-lbl">{ep.passCur}</label>
+          <div className="pe-inp"><Lock size={16} /><input type="password" placeholder="••••••••" /></div>
+          <label className="pe-field-lbl">{ep.passNew}</label>
+          <div className="pe-inp"><Lock size={16} /><input type="password" placeholder="••••••••" /></div>
+          <button className="btn" style={{ marginTop: 14, height: 50 }} onClick={() => { nav.sheet(null); nav.toast(t.saved) }}>
+            {t.save}
+          </button>
+        </div>
+      </Sheet>,
+    )
+  }
+
+  const openDeleteSheet = () => {
+    nav.sheet(
+      <Sheet title={ep.deleteConfirmTitle} center>
+        <p style={{ margin: '0 0 16px', fontSize: 14, color: 'var(--ink2)', textAlign: 'center', lineHeight: 1.5 }}>
+          {ep.deleteConfirmSub}
+        </p>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+          <button className="btn ghost" style={{ height: 48 }} onClick={() => nav.sheet(null)}>{t.cancel}</button>
+          <button className="btn" style={{ height: 48, background: 'var(--red)' }} onClick={() => { nav.sheet(null); nav.toast(t.profile.deleteAcc) }}>
+            {t.delete}
+          </button>
+        </div>
+      </Sheet>,
+    )
+  }
+
+  const letter = (shop.trim() || name.trim() || 'J')[0].toUpperCase()
+
   return (
-    <div className="screen">
-      <TopBar title={t.profile.editTitle} />
+    <div className="screen pg-soft">
+      <TopBar center title={t.profile.editTitle} />
       <div className="scroll">
-        <div className="lbl">{t.profile.name}</div><div className="field"><input value={name} onChange={(e) => setName(e.target.value)} /></div>
-        <div className="lbl">{t.profile.surname}</div><div className="field"><input value={sur} onChange={(e) => setSur(e.target.value)} /></div>
-        <div className="lbl">{t.profile.phone}<a onClick={() => nav.toast('SMS')}>{t.profile.changePhone}</a></div>
-        <div className="field" style={{ color: 'var(--ink2)' }}>{seller.phone}</div>
-        <div className="lbl">{t.profile.email}<a onClick={() => nav.toast('E-mail')}>{t.profile.changeEmail}</a></div>
-        <div className="field" style={{ color: 'var(--ink2)' }}>{seller.email}<span className="st-pill red" style={{ marginLeft: 'auto' }}>{t.profile.unverified}</span></div>
-        <button className="menu-item" style={{ marginTop: 20 }} onClick={() => nav.toast(t.profile.changePass)}>{t.profile.changePass}<ChevronRight size={18} /></button>
-        <button className="menu-item red" onClick={() => nav.toast(t.profile.deleteAcc)}>{t.profile.deleteAcc}</button>
+        {/* Живая карточка магазина */}
+        <div className="pe-hero">
+          <div className="pe-av">{letter}</div>
+          <div className="pe-hero-info">
+            <b>{shop.trim() || ep.shopPh}</b>
+            <small>{name.trim()}{sur.trim() ? ` ${sur.trim()}` : ''} · {district.trim() || 'İstanbul'}</small>
+            <div className="pe-badges">
+              <span className="pe-pill ok"><CheckCircle2 size={11} />{t.profile.storeActive}</span>
+              <span className="pe-pill">{countries.join(' · ')}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Секция 1: Магазин и владелец */}
+        <div className="prof-sec">{ep.storeSection}</div>
+        <div className="pe-card">
+          <div className="pe-field">
+            <label className="pe-field-lbl">{ep.shopName}</label>
+            <div className="pe-inp">
+              <Store size={17} />
+              <input value={shop} placeholder={ep.shopPh} onChange={(e) => setShop(e.target.value)} />
+            </div>
+          </div>
+
+          <div className="pe-row2">
+            <div className="pe-field">
+              <label className="pe-field-lbl">{t.profile.name}</label>
+              <div className="pe-inp">
+                <User size={16} />
+                <input value={name} onChange={(e) => setName(e.target.value)} />
+              </div>
+            </div>
+            <div className="pe-field">
+              <label className="pe-field-lbl">{t.profile.surname}</label>
+              <div className="pe-inp">
+                <input value={sur} placeholder="—" onChange={(e) => setSur(e.target.value)} />
+              </div>
+            </div>
+          </div>
+
+          <div className="pe-field" style={{ marginBottom: 0 }}>
+            <label className="pe-field-lbl">{ep.cityDistrict}</label>
+            <div className="pe-inp">
+              <MapPin size={17} />
+              <input value={district} placeholder={ep.cityDistrictPh} onChange={(e) => setDistrict(e.target.value)} />
+            </div>
+          </div>
+        </div>
+
+        {/* Секция 2: Контакты (только TR +90) */}
+        <div className="prof-sec">{ep.contactsSection}</div>
+        <div className="pe-card">
+          <div className="pe-field">
+            <div className="pe-field-top">
+              <label className="pe-field-lbl">{t.profile.phone}</label>
+              <span className="st-pill green"><Check size={10} style={{ marginRight: 2 }} />{ep.verified}</span>
+            </div>
+            <div className="pe-inp">
+              <span className="au2-tr"><em>TR</em><b>+90</b></span>
+              <input inputMode="tel" value={phone} onChange={(e) => setPhone(e.target.value)} />
+            </div>
+          </div>
+
+          <div className="pe-field" style={{ marginBottom: 0 }}>
+            <div className="pe-field-top">
+              <label className="pe-field-lbl">{t.profile.email}</label>
+              <span className="st-pill amber">{t.profile.unverified}</span>
+            </div>
+            <div className="pe-inp">
+              <Mail size={17} />
+              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+            </div>
+          </div>
+        </div>
+
+        {/* Секция 3: География доставки (4 страны) */}
+        <div className="prof-sec">{ep.geoSection}</div>
+        <div className="pe-card">
+          <div className="pe-geo-sub">{ep.geoSub}</div>
+          <div className="pe-geo-grid">
+            {ALL_COUNTRIES.map((cc) => {
+              const on = countries.includes(cc)
+              return (
+                <button
+                  key={cc}
+                  type="button"
+                  className={'pe-geo-chip' + (on ? ' on' : '')}
+                  onClick={() => toggleCountry(cc)}
+                >
+                  <span className="pe-geo-cc">{cc}</span>
+                  <span className="pe-geo-nm">{t.countries[cc]}</span>
+                  <span className={'pe-geo-chk' + (on ? ' on' : '')}>{on && <Check size={11} strokeWidth={3} />}</span>
+                </button>
+              )
+            })}
+          </div>
+        </div>
+
+        {/* Секция 4: Безопасность */}
+        <div className="prof-sec">{ep.securitySection}</div>
+        <div className="prof-group" style={{ marginBottom: 10 }}>
+          <button type="button" className="prof-row" onClick={openPasswordSheet}>
+            <span className="prof-ic" style={{ background: '#f5e8ff', color: '#ae33ff' }}><Lock size={17} /></span>
+            <span className="prof-lbl">{t.profile.changePass}</span>
+            <ChevronRight size={17} className="prof-arr" />
+          </button>
+          <button type="button" className="prof-row" onClick={openDeleteSheet}>
+            <span className="prof-ic" style={{ background: '#fdecec', color: '#e5484d' }}><Trash2 size={17} /></span>
+            <span className="prof-lbl" style={{ color: '#e5484d' }}>{t.profile.deleteAcc}</span>
+            <ChevronRight size={17} className="prof-arr" />
+          </button>
+        </div>
       </div>
-      <div className="bottom-cta"><button className="btn" onClick={() => { nav.toast(t.saved); nav.pop() }}>{t.profile.saveChanges}</button></div>
+
+      <div className="bottom-cta">
+        <button className="btn" style={{ height: 52, fontSize: 16, borderRadius: 14 }} onClick={save}>
+          <Check size={18} strokeWidth={2.5} />{t.profile.saveChanges}
+        </button>
+      </div>
     </div>
   )
 }

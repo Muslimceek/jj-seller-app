@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import {
   Eye, EyeOff, ChevronLeft, Phone, Mail, Store, User, Lock, Check, ShieldCheck, KeyRound,
-  Sparkles, CircleAlert, Loader2, ArrowRight, QrCode, PlayCircle, ChevronDown,
-  MapPin, CheckCircle2, Wallet, TrendingUp, Globe2,
+  Sparkles, CircleAlert, Loader2, ArrowRight, PlayCircle, ChevronDown,
+  MapPin, CheckCircle2, Wallet, TrendingUp, Globe2, Package,
 } from 'lucide-react'
-import { useNav, Sheet } from './ui'
-import { LANG_META } from './i18n'
+import { useNav, Sheet, SwipeLangBar } from './ui'
+import { loadSellerProfile, saveSellerProfile } from './data'
 
 /*
  * JJ Seller Auth & Registration v4 — Motion-Graphics Hero:
@@ -34,37 +34,37 @@ const TX = {
         cardSub: 'Стамбул · Активен сразу',
       },
       {
-        badge: 'Шаг 2 · Продажи в Казахстан',
-        title: 'Товары в ₺ — заказы в ₸',
-        desc: 'Загружайте фото и цены в лирах. Покупатели в Алматы, Астане и Шымкенте сразу видят цену в тенге.',
-        cardTop: 'Новый заказ · Алматы',
-        cardVal: '15 824 ₸',
-        cardSub: 'Лоферы · 1 шт · Оплачено',
+        badge: 'Шаг 2 · Продажи в 4 страны',
+        title: 'Казахстан, Россия, Кыргызстан, Узбекистан',
+        desc: 'Загружайте фото и цены в ₺. Покупатели сразу в 4 странах видят ваш магазин и оформляют заказы онлайн.',
+        cardTop: '4 страны · Доставка из Турции',
+        cardVal: 'KZ · RU · KG · UZ',
+        cardSub: 'Алматы · Москва · Бишкек · Ташкент',
       },
       {
-        badge: 'Шаг 3 · Карго и выплаты',
-        title: 'Cargo QR и быстрые выплаты',
-        desc: 'На каждый заказ Cargo API сам выдаёт QR-код для сдачи в Laleli. Деньги сразу видны на балансе.',
-        cardTop: 'IST-LAL → ALA',
-        cardVal: 'JJ-TR-ALA-160319',
-        cardSub: 'QR-этикетка готова за 1 сек',
+        badge: 'Шаг 3 · Аналитика и выплаты',
+        title: 'Контроль заказов и быстрые выплаты',
+        desc: 'Отслеживайте продажи по каждому товару, остатки и баланс прямо в телефоне — деньги видны сразу.',
+        cardTop: 'Выручка за неделю',
+        cardVal: '87 936 ₸',
+        cardSub: '+22,6% · Вывод на карту и IBAN',
       },
     ],
     // Login animated hooks
     loginHooks: [
       {
-        tag: 'TR → KZ · Прямые продажи',
-        title: 'Продавайте из Турции в Казахстан',
-        metric: '+42 800 ₸',
-        metricSub: 'средний день',
-        desc: 'Цены в ₺ автоматически пересчитываются в ₸ для покупателей',
+        tag: 'TR → 4 страны',
+        title: 'Продавайте из Турции в 4 страны',
+        metric: 'KZ·RU·KG·UZ',
+        metricSub: '4 рынка сразу',
+        desc: 'Казахстан, Россия, Кыргызстан и Узбекистан в одном кабинете',
       },
       {
-        tag: 'Cargo API · 1 клик',
-        title: 'QR-код карго приходит сам',
-        metric: 'IST → ALA',
-        metricSub: 'готов за 1 сек',
-        desc: 'Сдавайте заказы в Laleli по скану QR без бумажных накладных',
+        tag: 'Витрина в ₺ · 1 минута',
+        title: 'Удобная выкладка товаров с телефона',
+        metric: 'TR · RU · KZ',
+        metricSub: 'автоперевод',
+        desc: 'Добавляйте фото, размеры и цены в ₺ — карточки переводятся сами',
       },
       {
         tag: 'Live-кабинет в телефоне',
@@ -143,7 +143,7 @@ const TX = {
     launchSteps: [
       'Турецкий контакт подтверждён',
       'Магазин создан в JJ Seller',
-      'Cargo QR и аналитика подключены',
+      'Продажи в 4 страны и аналитика подключены',
     ],
     // Forgot
     forgotT: 'Восстановление пароля',
@@ -168,36 +168,36 @@ const TX = {
         cardSub: 'İstanbul · Anında aktif',
       },
       {
-        badge: 'Adım 2 · Kazakistan’a satış',
-        title: 'Fiyatı ₺ girin — ₸ ile satın',
-        desc: 'Fotoğraf ve ₺ fiyat ekleyin. Almatı, Astana ve Şımkent’teki alıcılar fiyatı otomatik ₸ görür.',
-        cardTop: 'Yeni sipariş · Almatı',
-        cardVal: '15 824 ₸',
-        cardSub: 'Loafer · 1 adet · Ödendi',
+        badge: 'Adım 2 · 4 ülkeye satış',
+        title: 'Kazakistan, Rusya, Kırgızistan, Özbekistan',
+        desc: 'Fotoğraf ve ₺ fiyat ekleyin. 4 ülkedeki alıcılar mağazanızı anında görüp sipariş versin.',
+        cardTop: '4 ülke · Türkiye’den doğrudan satış',
+        cardVal: 'KZ · RU · KG · UZ',
+        cardSub: 'Almatı · Moskova · Bişkek · Taşkent',
       },
       {
-        badge: 'Adım 3 · Kargo QR ve finans',
-        title: 'Kargo QR ve hızlı ödemeler',
-        desc: 'Her siparişte Kargo API otomatik QR kod üretir. Laleli şubesinde taratın, bakiyenizi takip edin.',
-        cardTop: 'IST-LAL → ALA',
-        cardVal: 'JJ-TR-ALA-160319',
-        cardSub: 'QR etiket 1 saniyede hazır',
+        badge: 'Adım 3 · Analiz ve hızlı ödemeler',
+        title: 'Sipariş takibi ve hızlı ödemeler',
+        desc: 'Her ürünün satış performansını, stoğunu ve bakiyenizi telefondan anlık takip edin.',
+        cardTop: 'Haftalık ciro',
+        cardVal: '87 936 ₸',
+        cardSub: '+22,6% · Kart ve IBAN çekimi',
       },
     ],
     loginHooks: [
       {
-        tag: 'TR → KZ · Doğrudan satış',
-        title: 'Türkiye’den Kazakistan’a satın',
-        metric: '+42 800 ₸',
-        metricSub: 'günlük ciro',
-        desc: '₺ fiyatlarınız alıcılar için otomatik ₸ olarak hesaplanır',
+        tag: 'TR → 4 ülke',
+        title: 'Türkiye’den 4 ülkeye satın',
+        metric: 'KZ·RU·KG·UZ',
+        metricSub: '4 pazar tek panel',
+        desc: 'Kazakistan, Rusya, Kırgızistan ve Özbekistan tek mağazada',
       },
       {
-        tag: 'Kargo API · 1 tık',
-        title: 'Kargo QR kodunuz anında hazır',
-        metric: 'IST → ALA',
-        metricSub: '1 sn’de QR',
-        desc: 'Laleli şubesinde QR taratın, kağıt evrakla uğraşmayın',
+        tag: '₺ Vitrin · 1 dakika',
+        title: 'Telefondan kolay ürün ekleme',
+        metric: 'TR · RU · KZ',
+        metricSub: 'oto çeviri',
+        desc: 'Fotoğraf ve ₺ fiyat ekleyin — ürün kartları otomatik çevrilir',
       },
       {
         tag: 'Cepte canlı panel',
@@ -276,7 +276,7 @@ const TX = {
     launchSteps: [
       'İletişim doğrulandı',
       'Mağaza JJ Seller’da oluşturuldu',
-      'Kargo QR ve analiz bağlandı',
+      '4 ülke satışı ve analiz bağlandı',
     ],
     // Forgot
     forgotT: 'Şifre sıfırlama',
@@ -301,36 +301,36 @@ const TX = {
         cardSub: 'Ыстамбұл · Бірден белсенді',
       },
       {
-        badge: '2-қадам · Қазақстанға сатылым',
-        title: 'Бағасы ₺ — тапсырыстар ₸',
-        desc: 'Фото және ₺ баға қосыңыз. Алматы, Астана, Шымкент сатып алушылары бағаны ₸ түрінде көреді.',
-        cardTop: 'Жаңа тапсырыс · Алматы',
-        cardVal: '15 824 ₸',
-        cardSub: 'Лоферы · 1 дана · Төленді',
+        badge: '2-қадам · 4 елге сатылым',
+        title: 'Қазақстан, Ресей, Қырғызстан, Өзбекстан',
+        desc: 'Фото және ₺ баға қосыңыз. 4 елдің сатып алушылары дүкеніңізді бірден көріп, тапсырыс береді.',
+        cardTop: '4 ел · Түркиядан жеткізу',
+        cardVal: 'KZ · RU · KG · UZ',
+        cardSub: 'Алматы · Мәскеу · Бішкек · Ташкент',
       },
       {
-        badge: '3-қадам · Cargo QR және төлем',
-        title: 'Cargo QR және жылдам төлем',
-        desc: 'Әр тапсырысқа Cargo API автоматты QR-код береді. Laleli пунктінде сканерлеп, балансты бақылаңыз.',
-        cardTop: 'IST-LAL → ALA',
-        cardVal: 'JJ-TR-ALA-160319',
-        cardSub: 'QR-этикетка 1 секундта дайын',
+        badge: '3-қадам · Талдау және төлем',
+        title: 'Тапсырыс пен төлемді басқару',
+        desc: 'Әр тауардың сатылымын, қойма қалдығын және балансыңызды телефоннан бақылаңыз.',
+        cardTop: 'Апталық айналым',
+        cardVal: '87 936 ₸',
+        cardSub: '+22,6% · Карта мен IBAN-ға шығару',
       },
     ],
     loginHooks: [
       {
-        tag: 'TR → KZ · Тікелей сатылым',
-        title: 'Түркиядан Қазақстанға сатыңыз',
-        metric: '+42 800 ₸',
-        metricSub: 'орташа күн',
-        desc: '₺ бағаларыңыз сатып алушыларға автоматты ₸ болып көрінеді',
+        tag: 'TR → 4 ел',
+        title: 'Түркиядан 4 елге сатыңыз',
+        metric: 'KZ·RU·KG·UZ',
+        metricSub: '4 нарық бірге',
+        desc: 'Қазақстан, Ресей, Қырғызстан және Өзбекстан бір кабинетте',
       },
       {
-        tag: 'Cargo API · 1 басу',
-        title: 'Карго QR-коды өзі келеді',
-        metric: 'IST → ALA',
-        metricSub: '1 сек дайын',
-        desc: 'Laleli бөлімшесінде QR сканерлеп, жылдам тапсырыңыз',
+        tag: '₺ Витрина · 1 минут',
+        title: 'Телефоннан жылдам тауар қосу',
+        metric: 'TR · RU · KZ',
+        metricSub: 'автоаударма',
+        desc: 'Фото және ₺ баға енгізіңіз — карточкалар өзі аударылады',
       },
       {
         tag: 'Live-кабинет телефонда',
@@ -409,7 +409,7 @@ const TX = {
     launchSteps: [
       'Байланыс расталды',
       'Дүкен JJ Seller-де құрылды',
-      'Cargo QR және талдау қосылды',
+      '4 елге сатылым және талдау қосылды',
     ],
     // Forgot
     forgotT: 'Құпиясөзді қалпына келтіру',
@@ -432,25 +432,9 @@ const maskPhone = (s: string) => {
   return [d.slice(0, 3), d.slice(3, 6), d.slice(6, 8), d.slice(8, 10)].filter(Boolean).join(' ')
 }
 
-/* ---------- Плавно анимированный переключатель языка TR · RU · KZ ---------- */
+/* ---------- Свайп-переключатель языка TR · RU · KZ (смах влево/вправо + тап) ---------- */
 function LangBar() {
-  const nav = useNav()
-  const idx = Math.max(0, LANG_META.findIndex((m) => m.code === nav.lang))
-  return (
-    <div className="au3-lang" role="group" aria-label={nav.t.language}>
-      <span className="au3-lang-thumb" style={{ transform: `translateX(${idx * 100}%)` }} />
-      {LANG_META.map((m) => (
-        <button
-          key={m.code}
-          type="button"
-          className={nav.lang === m.code ? 'on' : ''}
-          onClick={() => nav.setLang(m.code)}
-        >
-          {m.short}
-        </button>
-      ))}
-    </div>
-  )
+  return <SwipeLangBar variant="glass" />
 }
 
 /* ---------- Ювелирный анимированный логотип JJ Seller ---------- */
@@ -742,19 +726,14 @@ function OnboardingTour({
             <div className="au2-demo-card float">
               <div className="au2-dc-shine" />
               <div className="au2-dc-top">
-                <span className="au2-dc-ic"><QrCode size={17} /></span>
+                <span className="au2-dc-ic green"><Wallet size={17} /></span>
                 <span>{slide.cardTop}</span>
-                <em className="au2-dc-ok"><Wallet size={11} /></em>
+                <em className="au2-dc-ok"><TrendingUp size={11} /></em>
               </div>
-              <div className="au2-dc-qr-row">
-                <div className="au2-mini-qr">
-                  <QrCode size={34} />
-                  <i className="au2-laser" />
-                </div>
-                <div>
-                  <div className="au2-dc-code">{slide.cardVal}</div>
-                  <div className="au2-dc-sub" style={{ marginTop: 4 }}>{slide.cardSub}</div>
-                </div>
+              <div className="au2-dc-val">{slide.cardVal}</div>
+              <div className="au2-dc-sub">
+                <span className="au2-dc-pill green">LIVE</span>
+                <span>{slide.cardSub}</span>
               </div>
             </div>
           )}
@@ -867,7 +846,7 @@ function Login({
           <div className="au2-dc-shine" />
           <div className="au3-mc-top">
             <span className="au3-mc-tag">
-              {hookIdx === 0 ? <Globe2 size={11} /> : hookIdx === 1 ? <QrCode size={11} /> : <TrendingUp size={11} />}
+              {hookIdx === 0 ? <Globe2 size={11} /> : hookIdx === 1 ? <Package size={11} /> : <TrendingUp size={11} />}
               {hook.tag}
             </span>
             <div className="au3-mc-metric">
@@ -881,9 +860,9 @@ function Login({
               <p>{hook.desc}</p>
             </div>
             {hookIdx === 1 ? (
-              <div className="au3-mc-qr">
-                <QrCode size={22} />
-                <i />
+              <div className="au3-mc-pack" aria-hidden>
+                <Package size={20} />
+                <span>₺</span>
               </div>
             ) : hookIdx === 2 ? (
               <div className="au3-mc-bars" aria-hidden>
@@ -893,10 +872,9 @@ function Login({
                 <i className="hi" style={{ height: '100%' }} />
               </div>
             ) : (
-              <div className="au3-mc-route" aria-hidden>
-                <span>TR</span>
-                <em />
-                <b>KZ</b>
+              <div className="au3-mc-countries" aria-hidden>
+                <span>KZ</span><span>RU</span>
+                <span>KG</span><span>UZ</span>
               </div>
             )}
           </div>
@@ -1038,6 +1016,14 @@ function Register({
     const key = mode === 0 ? digits(id) : id.trim().toLowerCase()
     const list = loadAccounts().filter((a) => a.id !== key)
     localStorage.setItem(ACC_KEY, JSON.stringify([...list, { id: key, pass, shop: shop.trim() }]))
+    const curProf = loadSellerProfile()
+    saveSellerProfile({
+      ...curProf,
+      shop: shop.trim(),
+      name: name.trim(),
+      phone: mode === 0 ? '+90 ' + id : curProf.phone,
+      email: mode === 1 ? id.trim() : curProf.email,
+    })
     onSubmit(mode === 0 ? '+90 ' + id : id.trim(), shop.trim())
   }
 
@@ -1046,7 +1032,7 @@ function Register({
   const shopLetter = (trimmedShop || trimmedName || 'J')[0].toUpperCase()
 
   return (
-    <div className="au2-screen">
+    <div className="au2-screen reg-open">
       {/* Живой рекламный motion-хедер: печатает имя и карточку магазина прямо во время ввода */}
       <div className="au3-hero reg">
         <div className="au2-glow a" />

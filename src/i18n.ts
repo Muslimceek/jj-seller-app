@@ -11,11 +11,20 @@ export function detectLang(): Lang {
     const saved = localStorage.getItem('jj_lang')
     if (saved === 'tr' || saved === 'ru' || saved === 'kk') return saved
   } catch {}
-  if (typeof navigator !== 'undefined') {
-    const n = (navigator.language || '').toLowerCase()
-    if (n.startsWith('kk') || n.startsWith('kz')) return 'kk'
-    if (n.startsWith('ru')) return 'ru'
-  }
+  // Автоопределение региона: если пользователь в Турции (часовой пояс Istanbul / Turkey) — сразу турецкий
+  try {
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || ''
+    if (/istanbul|turkey/i.test(tz)) return 'tr'
+    if (typeof navigator !== 'undefined') {
+      const langs = (navigator.languages && navigator.languages.length ? navigator.languages : [navigator.language || ''])
+        .map((s) => s.toLowerCase())
+      if (langs.some((l) => l.startsWith('tr'))) return 'tr'
+      if (langs.some((l) => l.startsWith('kk') || l.startsWith('kz'))) return 'kk'
+      if (langs.some((l) => l.startsWith('ru'))) return 'ru'
+    }
+    if (/almaty|qyzylorda|aqtobe|aqtau|atyrau|oral/i.test(tz)) return 'kk'
+    if (/moscow|bishkek|tashkent|samarkand|novosibirsk|yekaterinburg/i.test(tz)) return 'ru'
+  } catch {}
   return 'tr'
 }
 
@@ -83,6 +92,26 @@ export interface Dict {
   cargoQrTrack: string
   cargoQrApiData: string
   cargoQrBtn: string
+  countries: Record<'KZ' | 'RU' | 'KG' | 'UZ', string>
+  fourCountriesLine: string
+  swipeLangHint: string
+  editProfile: {
+    storeSection: string
+    contactsSection: string
+    geoSection: string
+    geoSub: string
+    securitySection: string
+    shopName: string
+    shopPh: string
+    cityDistrict: string
+    cityDistrictPh: string
+    verified: string
+    deleteConfirmTitle: string
+    deleteConfirmSub: string
+    passTitle: string
+    passCur: string
+    passNew: string
+  }
   // Home
   home: {
     welcome: string
@@ -417,6 +446,26 @@ const TR: Dict = {
   cargoQrTrack: 'Takip kodu',
   cargoQrApiData: 'Kargo API verisi',
   cargoQrBtn: 'QR Kargo',
+  countries: { KZ: 'Kazakistan', RU: 'Rusya', KG: 'Kırgızistan', UZ: 'Özbekistan' },
+  fourCountriesLine: 'Kazakistan · Rusya · Kırgızistan · Özbekistan',
+  swipeLangHint: 'Sola / sağa kaydırarak dili değiştirin',
+  editProfile: {
+    storeSection: 'Mağaza bilgileri',
+    contactsSection: 'İletişim bilgileri',
+    geoSection: 'Satış yapılan 4 ülke',
+    geoSub: 'Türkiye’den tüm 4 ülkeye doğrudan satış',
+    securitySection: 'Güvenlik',
+    shopName: 'Mağaza adı',
+    shopPh: 'Örn: Lale Boutique',
+    cityDistrict: 'Şehir / Semt (Türkiye)',
+    cityDistrictPh: 'İstanbul · Laleli',
+    verified: 'Doğrulandı',
+    deleteConfirmTitle: 'Hesabı silmek istiyor musunuz?',
+    deleteConfirmSub: 'Mağaza ve sipariş geçmişi kalıcı olarak kaldırılır.',
+    passTitle: 'Şifreyi değiştir',
+    passCur: 'Mevcut şifre',
+    passNew: 'Yeni şifre (6+ karakter)',
+  },
   home: {
     welcome: 'Hoş geldiniz,',
     storeSuffix: 'Mağazası',
@@ -657,7 +706,7 @@ const TR: Dict = {
     noDiscount: 'Yok',
     discountLbl: 'İndirim (%)',
     discountedPrice: 'İndirimli fiyat',
-    buyerPrice: 'Alıcı fiyatı (Kazakistan)',
+    buyerPrice: 'Alıcı fiyatı (KZ · RU · KG · UZ)',
     rateLbl: 'Kur',
     stockTitle: 'Stok yönetimi',
     bulkQuick: 'Hepsine tek tıkla:',
@@ -758,6 +807,26 @@ const RU: Dict = {
   cargoQrTrack: 'Трек-код',
   cargoQrApiData: 'Ответ Cargo API',
   cargoQrBtn: 'QR Карго',
+  countries: { KZ: 'Казахстан', RU: 'Россия', KG: 'Кыргызстан', UZ: 'Узбекистан' },
+  fourCountriesLine: 'Казахстан · Россия · Кыргызстан · Узбекистан',
+  swipeLangHint: 'Смахните влево / вправо для смены языка',
+  editProfile: {
+    storeSection: 'Данные магазина',
+    contactsSection: 'Контакты',
+    geoSection: 'География продаж (4 страны)',
+    geoSub: 'Прямые продажи из Турции во все 4 страны',
+    securitySection: 'Безопасность',
+    shopName: 'Название магазина',
+    shopPh: 'Напр: Lale Boutique',
+    cityDistrict: 'Город / Район (Турция)',
+    cityDistrictPh: 'İstanbul · Laleli',
+    verified: 'Подтверждён',
+    deleteConfirmTitle: 'Удалить аккаунт?',
+    deleteConfirmSub: 'Данные магазина и история заказов будут удалены.',
+    passTitle: 'Сменить пароль',
+    passCur: 'Текущий пароль',
+    passNew: 'Новый пароль (6+ символов)',
+  },
   home: {
     welcome: 'Добро пожаловать,',
     storeSuffix: 'Магазин',
@@ -998,7 +1067,7 @@ const RU: Dict = {
     noDiscount: 'Нет',
     discountLbl: 'Скидка (%)',
     discountedPrice: 'Цена со скидкой',
-    buyerPrice: 'Цена для покупателя (Казахстан)',
+    buyerPrice: 'Цена для покупателя (KZ · RU · KG · UZ)',
     rateLbl: 'Курс',
     stockTitle: 'Остатки на складе',
     bulkQuick: 'Всем в 1 клик:',
@@ -1099,6 +1168,26 @@ const KK: Dict = {
   cargoQrTrack: 'Трек-код',
   cargoQrApiData: 'Cargo API дерегі',
   cargoQrBtn: 'QR Карго',
+  countries: { KZ: 'Қазақстан', RU: 'Ресей', KG: 'Қырғызстан', UZ: 'Өзбекстан' },
+  fourCountriesLine: 'Қазақстан · Ресей · Қырғызстан · Өзбекстан',
+  swipeLangHint: 'Тілді ауыстыру үшін солға / оңға сырғытыңыз',
+  editProfile: {
+    storeSection: 'Дүкен деректері',
+    contactsSection: 'Байланыс',
+    geoSection: 'Сату географиясы (4 ел)',
+    geoSub: 'Түркиядан 4 елге тікелей сатылым',
+    securitySection: 'Қауіпсіздік',
+    shopName: 'Дүкен атауы',
+    shopPh: 'Мыс: Lale Boutique',
+    cityDistrict: 'Қала / Аудан (Түркия)',
+    cityDistrictPh: 'İstanbul · Laleli',
+    verified: 'Расталған',
+    deleteConfirmTitle: 'Аккаунтты жою керек пе?',
+    deleteConfirmSub: 'Дүкен деректері мен тапсырыстар тарихы өшіріледі.',
+    passTitle: 'Құпиясөзді өзгерту',
+    passCur: 'Қазіргі құпиясөз',
+    passNew: 'Жаңа құпиясөз (6+ таңба)',
+  },
   home: {
     welcome: 'Қош келдіңіз,',
     storeSuffix: 'Дүкені',
@@ -1339,7 +1428,7 @@ const KK: Dict = {
     noDiscount: 'Жоқ',
     discountLbl: 'Жеңілдік (%)',
     discountedPrice: 'Жеңілдікпен баға',
-    buyerPrice: 'Сатып алушы бағасы (Қазақстан)',
+    buyerPrice: 'Сатып алушы бағасы (KZ · RU · KG · UZ)',
     rateLbl: 'Бағам',
     stockTitle: 'Қоймадағы қор',
     bulkQuick: 'Барлығына 1 рет басып:',

@@ -6,10 +6,62 @@ export const img = (n: string) => `/img/${n}.jpg`
 export const seller = {
   name: 'Jadyra',
   surname: '',
+  shop: 'Jadyra Boutique',
+  district: 'İstanbul · Laleli',
   phone: '+90 555 000 00 00',
   phoneShort: '5550000000',
   email: 'seller@example.com',
   balance: 15824,
+}
+
+export type CountryCode = 'KZ' | 'RU' | 'KG' | 'UZ'
+export const ALL_COUNTRIES: CountryCode[] = ['KZ', 'RU', 'KG', 'UZ']
+
+export interface SellerProfile {
+  shop: string
+  name: string
+  surname: string
+  district: string
+  phone: string
+  email: string
+  countries: CountryCode[]
+}
+
+const PROF_KEY = 'jj-seller-profile'
+export function loadSellerProfile(): SellerProfile {
+  let savedShop = ''
+  try { savedShop = localStorage.getItem('jj-seller-shop') || '' } catch {}
+  try {
+    const raw = localStorage.getItem(PROF_KEY)
+    if (raw) {
+      const p = JSON.parse(raw)
+      return {
+        shop: p.shop || savedShop || seller.shop,
+        name: p.name || seller.name,
+        surname: p.surname ?? seller.surname,
+        district: p.district || seller.district,
+        phone: p.phone || seller.phone,
+        email: p.email || seller.email,
+        countries: Array.isArray(p.countries) && p.countries.length ? p.countries : ALL_COUNTRIES,
+      }
+    }
+  } catch {}
+  return {
+    shop: savedShop || seller.shop,
+    name: seller.name,
+    surname: seller.surname,
+    district: seller.district,
+    phone: seller.phone,
+    email: seller.email,
+    countries: ALL_COUNTRIES,
+  }
+}
+
+export function saveSellerProfile(p: SellerProfile) {
+  try {
+    localStorage.setItem(PROF_KEY, JSON.stringify(p))
+    if (p.shop.trim()) localStorage.setItem('jj-seller-shop', p.shop.trim())
+  } catch {}
 }
 
 export type OrderStatus = 'new' | 'processing' | 'shipped' | 'delivered' | 'cancelled'
@@ -26,6 +78,7 @@ export interface Order {
   buyerName: string
   buyerPhone: string
   buyerEmail: string
+  countryCode: CountryCode
   city: string
   streetHouse: string
   apartment: string
@@ -37,31 +90,31 @@ export const orders: Order[] = [
     id: '2848160319', title: 'Лоферы', image: img('lofer'), qty: 1, total: 11391,
     date: '24.11.2026, 10:34', dateLong: '24.11.2026 · 10:34', status: 'new',
     buyerName: 'Айгерим Саматова', buyerPhone: '+7 701 412 88 90', buyerEmail: 'aigerim.s@example.com',
-    city: 'Алматы', streetHouse: 'мкр. Айнабулак-2, д. 45', apartment: 'кв. 18', addressLabel: 'Дом',
+    countryCode: 'KZ', city: 'Алматы', streetHouse: 'мкр. Айнабулак-2, д. 45', apartment: 'кв. 18', addressLabel: 'Дом',
   },
   {
     id: '2984122545', title: 'Куртка', image: img('kurtka'), qty: 4, total: 72112,
     date: '23.11.2026, 20:16', dateLong: '23.11.2026 · 20:16', status: 'processing',
-    buyerName: 'Динара Нурланова', buyerPhone: '+7 702 884 19 20', buyerEmail: 'dinara.n@example.com',
-    city: 'Астана', streetHouse: 'пр. Мангилик Ел, д. 52', apartment: 'кв. 114', addressLabel: 'ЖК Арман',
+    buyerName: 'Анна Соколова', buyerPhone: '+7 916 482 19 30', buyerEmail: 'anna.s@example.com',
+    countryCode: 'RU', city: 'Москва', streetHouse: 'ул. Тверская, д. 18', apartment: 'кв. 42', addressLabel: 'ЖК Центр',
   },
   {
     id: '5574963067', title: 'Балетки', image: img('baletki'), qty: 1, total: 15824,
     date: '21.11.2026, 13:26', dateLong: '21.11.2026 · 13:26', status: 'shipped',
-    buyerName: 'Мадина Серикова', buyerPhone: '+7 775 310 44 12', buyerEmail: 'madina.s@example.com',
-    city: 'Шымкент', streetHouse: 'ул. Тауке хана, д. 19', apartment: 'кв. 7', addressLabel: 'Дом',
+    buyerName: 'Алина Токтогулова', buyerPhone: '+996 555 310 442', buyerEmail: 'alina.t@example.com',
+    countryCode: 'KG', city: 'Бишкек', streetHouse: 'пр. Чуй, д. 124', apartment: 'кв. 15', addressLabel: 'Дом',
   },
   {
     id: '2881262078', title: 'Двойка', image: img('dvoyka'), qty: 1, total: 15824,
     date: '19.11.2026, 13:28', dateLong: '19.11.2026 · 13:28', status: 'delivered',
-    buyerName: 'Аружан Касымова', buyerPhone: '+7 707 551 09 34', buyerEmail: 'aruzhan.k@example.com',
-    city: 'Алматы', streetHouse: 'ул. Абая, д. 109', apartment: 'кв. 63', addressLabel: 'Офис',
+    buyerName: 'Мадина Каримова', buyerPhone: '+998 90 551 09 34', buyerEmail: 'madina.k@example.com',
+    countryCode: 'UZ', city: 'Ташкент', streetHouse: 'пр. Амира Темура, д. 68', apartment: 'кв. 27', addressLabel: 'Офис',
   },
   {
     id: '2881262011', title: 'Двойка', image: img('dvoyka'), qty: 1, total: 15824,
     date: '17.11.2026, 13:20', dateLong: '17.11.2026 · 13:20', status: 'cancelled',
-    buyerName: 'Жанель Ахметова', buyerPhone: '+7 705 223 71 08', buyerEmail: 'zhanel.a@example.com',
-    city: 'Караганда', streetHouse: 'пр. Бухар Жырау, д. 74', apartment: 'кв. 29', addressLabel: 'Дом',
+    buyerName: 'Динара Нурланова', buyerPhone: '+7 702 884 19 20', buyerEmail: 'dinara.n@example.com',
+    countryCode: 'KZ', city: 'Астана', streetHouse: 'пр. Мангилик Ел, д. 52', apartment: 'кв. 114', addressLabel: 'Дом',
   },
 ]
 
@@ -134,42 +187,42 @@ export const popular: PopularProduct[] = [
     id: 'pop1', title: 'Женские лоферы', stock: 20, sold: 14, revenue: 159474, rating: 4.9,
     views: 312, carts: 58, deltaPct: 24.5, image: img('lofer_pop'),
     series: [1, 2, 1, 3, 2, 3, 2],
-    cities: [{ name: 'Алматы', pct: 54 }, { name: 'Астана', pct: 29 }, { name: 'Шымкент', pct: 17 }],
+    cities: [{ name: 'Алматы (KZ)', pct: 42 }, { name: 'Москва (RU)', pct: 31 }, { name: 'Ташкент (UZ)', pct: 27 }],
     sizes: [{ size: '37', sold: 5 }, { size: '38', sold: 5 }, { size: '39', sold: 4 }],
   },
   {
     id: 'pop2', title: 'Куртка', stock: 20, sold: 11, revenue: 198308, rating: 4.8,
     views: 274, carts: 46, deltaPct: 19.2, image: img('kurtka_pop'),
     series: [1, 1, 2, 1, 3, 2, 1],
-    cities: [{ name: 'Астана', pct: 48 }, { name: 'Алматы', pct: 34 }, { name: 'Караганда', pct: 18 }],
+    cities: [{ name: 'Москва (RU)', pct: 44 }, { name: 'Астана (KZ)', pct: 34 }, { name: 'Бишкек (KG)', pct: 22 }],
     sizes: [{ size: 'M', sold: 5 }, { size: 'L', sold: 4 }, { size: 'S', sold: 2 }],
   },
   {
     id: 'pop3', title: 'Балетки', stock: 20, sold: 9, revenue: 142416, rating: 4.9,
     views: 218, carts: 39, deltaPct: 15.8, image: img('baletki_pop'),
     series: [1, 0, 2, 2, 1, 2, 1],
-    cities: [{ name: 'Шымкент', pct: 44 }, { name: 'Алматы', pct: 38 }, { name: 'Астана', pct: 18 }],
+    cities: [{ name: 'Бишкек (KG)', pct: 40 }, { name: 'Алматы (KZ)', pct: 35 }, { name: 'Ташкент (UZ)', pct: 25 }],
     sizes: [{ size: '37', sold: 4 }, { size: '38', sold: 3 }, { size: '36', sold: 2 }],
   },
   {
     id: 'pop4', title: 'Кроссовки спорт', stock: 25, sold: 8, revenue: 88900, rating: 4.7,
     views: 195, carts: 31, deltaPct: 11.4, image: img('krossovki3'),
     series: [0, 1, 1, 2, 1, 2, 1],
-    cities: [{ name: 'Алматы', pct: 50 }, { name: 'Астана', pct: 32 }, { name: 'Актобе', pct: 18 }],
+    cities: [{ name: 'Ташкент (UZ)', pct: 46 }, { name: 'Алматы (KZ)', pct: 34 }, { name: 'Москва (RU)', pct: 20 }],
     sizes: [{ size: '39', sold: 3 }, { size: '40', sold: 3 }, { size: '38', sold: 2 }],
   },
   {
     id: 'pop5', title: 'Сапоги зимние', stock: 5, sold: 6, revenue: 114680, rating: 4.8,
     views: 164, carts: 27, deltaPct: 28.0, image: img('sapogi2'),
     series: [1, 0, 1, 1, 1, 1, 1],
-    cities: [{ name: 'Астана', pct: 58 }, { name: 'Караганда', pct: 25 }, { name: 'Алматы', pct: 17 }],
+    cities: [{ name: 'Москва (RU)', pct: 52 }, { name: 'Астана (KZ)', pct: 28 }, { name: 'Бишкек (KG)', pct: 20 }],
     sizes: [{ size: '38', sold: 3 }, { size: '39', sold: 2 }, { size: '37', sold: 1 }],
   },
   {
     id: 'pop6', title: 'Сапоги классика', stock: 20, sold: 4, revenue: 69340, rating: 4.6,
     views: 128, carts: 19, deltaPct: 8.6, image: img('sapogi3'),
     series: [0, 1, 0, 1, 1, 0, 1],
-    cities: [{ name: 'Алматы', pct: 50 }, { name: 'Астана', pct: 50 }],
+    cities: [{ name: 'Алматы (KZ)', pct: 50 }, { name: 'Ташкент (UZ)', pct: 50 }],
     sizes: [{ size: '37', sold: 2 }, { size: '38', sold: 2 }],
   },
 ]
@@ -298,12 +351,12 @@ export interface Transaction {
 }
 
 export const transactions: Transaction[] = [
-  { id: 'tx1', type: 'in', title: 'Лоферы · #160319', sub: 'Алматы · Айгерим С.', amount: 11391, date: '24.11.2026' },
+  { id: 'tx1', type: 'in', title: 'Лоферы · #160319', sub: 'Алматы (KZ) · Айгерим С.', amount: 11391, date: '24.11.2026' },
   { id: 'tx2', type: 'out', title: 'Test Bank ·••• 1326', sub: 'IBAN', amount: 45000, date: '22.11.2026' },
-  { id: 'tx3', type: 'in', title: 'Куртка · #122545', sub: 'Астана · Динара Н.', amount: 57690, date: '21.11.2026' },
-  { id: 'tx4', type: 'in', title: 'Балетки · #963067', sub: 'Шымкент · Мадина С.', amount: 12659, date: '19.11.2026' },
+  { id: 'tx3', type: 'in', title: 'Куртка · #122545', sub: 'Москва (RU) · Анна С.', amount: 57690, date: '21.11.2026' },
+  { id: 'tx4', type: 'in', title: 'Балетки · #963067', sub: 'Бишкек (KG) · Алина Т.', amount: 12659, date: '19.11.2026' },
   { id: 'tx5', type: 'out', title: 'Test Bank ·••• 1326', sub: 'IBAN', amount: 25000, date: '18.11.2026' },
-  { id: 'tx6', type: 'in', title: 'Двойка · #262078', sub: 'Алматы · Аружан К.', amount: 12659, date: '17.11.2026' },
+  { id: 'tx6', type: 'in', title: 'Двойка · #262078', sub: 'Ташкент (UZ) · Мадина К.', amount: 12659, date: '17.11.2026' },
 ]
 
 export interface Cat { name: string; count?: number; children?: Cat[] }
