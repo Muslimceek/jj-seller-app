@@ -1,16 +1,20 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import {
   Eye, EyeOff, ChevronLeft, Phone, Mail, Store, User, Lock, Check, ShieldCheck, KeyRound,
-  Sparkles, CircleAlert, Loader2, ArrowRight, QrCode, BarChart3, Zap, PlayCircle, ChevronDown,
-  MapPin, CheckCircle2, Wallet,
+  Sparkles, CircleAlert, Loader2, ArrowRight, QrCode, PlayCircle, ChevronDown,
+  MapPin, CheckCircle2, Wallet, TrendingUp, Globe2,
 } from 'lucide-react'
 import { useNav, Sheet } from './ui'
 import { LANG_META } from './i18n'
 
 /*
- * Премиальный вход, интерактивный онбординг-гид (можно скрыть или открыть снова)
- * и 2-шаговая регистрация продавца JJ Seller (TR / RU / KZ) с анимационной сверкой.
- * Регистрация по телефону — только турецкий номер (+90), без флагов.
+ * JJ Seller Auth & Registration v4 — Motion-Graphics Hero:
+ *  - Ровный ювелирный логотип JJ (246:367) с мягким бликом и анимированный переключатель TR · RU · KZ.
+ *  - На входе: живая карусель анимированных хуков (Продажи TR → KZ, Cargo QR со сканером, Рост продаж),
+ *    анимированная карточка «Новый продавец» поднята ВЫШЕ Google / Apple.
+ *  - При регистрации: живая motion-карточка магазина в шапке печатается в реальном времени по мере ввода
+ *    имени («Привет, Айгерим! Добро пожаловать в JJ Seller») и названия магазина («Lale Boutique») + полоса готовности.
+ *  - Телефон — только турецкий номер TR +90, без флагов.
  */
 
 const TX = {
@@ -46,9 +50,30 @@ const TX = {
         cardSub: 'QR-этикетка готова за 1 сек',
       },
     ],
-    loginTitle: 'Кабинет продавца',
-    loginSub: 'Управляйте товарами, заказами и продажами в Казахстан',
-    perks: ['Старт за 1 мин', 'Cargo QR', 'Live-аналитика'],
+    // Login animated hooks
+    loginHooks: [
+      {
+        tag: 'TR → KZ · Прямые продажи',
+        title: 'Продавайте из Турции в Казахстан',
+        metric: '+42 800 ₸',
+        metricSub: 'средний день',
+        desc: 'Цены в ₺ автоматически пересчитываются в ₸ для покупателей',
+      },
+      {
+        tag: 'Cargo API · 1 клик',
+        title: 'QR-код карго приходит сам',
+        metric: 'IST → ALA',
+        metricSub: 'готов за 1 сек',
+        desc: 'Сдавайте заказы в Laleli по скану QR без бумажных накладных',
+      },
+      {
+        tag: 'Live-кабинет в телефоне',
+        title: 'Контроль продаж и выплат 24/7',
+        metric: '+31,8%',
+        metricSub: 'рост выручки',
+        desc: 'Аналитика по каждому товару, остатки и вывод на ваш счёт',
+      },
+    ],
     phone: 'Телефон',
     mail: 'E-mail',
     pass: 'Пароль',
@@ -60,25 +85,33 @@ const TX = {
     demoLoaded: 'Демо-данные подставлены',
     bad: 'Неверный логин или пароль',
     loginHint: 'Номер +90, e-mail или admin',
-    or: 'или через аккаунт',
+    or: 'или войти через',
     google: 'Google',
     apple: 'Apple',
-    newSeller: 'Новый продавец?',
-    newSellerSub: 'Откройте магазин за 1 минуту',
-    regBtn: 'Создать',
+    newSellerBadge: 'Новый продавец',
+    newSellerTitle: 'Откройте свой магазин',
+    newSellerSub: 'Регистрация за 1 минуту · Бесплатно',
+    regBtn: 'Начать',
     hasAcc: 'Уже есть аккаунт?',
-    // Register
-    stepLabels: ['Данные', 'Код'],
-    regTitle: 'Открыть магазин',
-    regSub: 'Регистрация продавцов из Турции — просто и понятно',
+    // Register live hero
+    stepLabels: ['Магазин', 'Код'],
+    liveWelcomeDefault: 'Добро пожаловать в JJ Seller',
+    liveGreet: (name: string) => `Привет, ${name}!`,
+    liveWelcomeNamed: 'Добро пожаловать в JJ Seller',
+    liveShopPlaceholder: 'Название вашего магазина',
+    liveOwnerPrefix: 'Владелец:',
+    liveOwnerPlaceholder: 'Ваше имя',
+    liveReadyPill: 'Готов к запуску',
+    liveTypingPill: 'Создаётся…',
+    liveProgressLbl: 'Заполнено',
     regGuideToggle: 'Как пройти регистрацию? (3 шага)',
     regGuideSteps: [
-      'Введите название магазина и ваше имя',
-      'Укажите турецкий номер +90 или e-mail и пароль',
-      'Введите 4-значный SMS-код — кабинет откроется сразу',
+      'Введите название магазина и имя — карточка сверху оживёт сразу',
+      'Укажите турецкий номер +90 или e-mail и придумайте пароль',
+      'Подтвердите 4-значный код — кабинет продавца откроется сразу',
     ],
-    watchTour: 'Посмотреть презентацию',
-    shopLbl: 'Магазин',
+    watchTour: 'Смотреть презентацию',
+    shopLbl: 'Название магазина',
     shopPh: 'Lale Boutique',
     nameLbl: 'Ваше имя',
     namePh: 'Айгерим',
@@ -93,7 +126,7 @@ const TX = {
     agreePrefix: 'Принимаю ',
     agree: ['политику конфиденциальности', 'соглашение', 'оферту JJ Market'],
     needAgree: 'Подтвердите согласие с условиями',
-    regSubmit: 'Получить код',
+    regSubmit: 'Создать и получить код',
     consentShort: ['Продолжая, вы принимаете ', 'правила сервиса', ''],
     // OTP
     otpTitle: 'Подтверждение',
@@ -104,12 +137,12 @@ const TX = {
     otpBad: 'Неверный код — попробуйте 1234',
     confirm: 'Подтвердить и войти',
     welcome: (n: string) => `Добро пожаловать, ${n}!`,
-    // Animated launch verification
-    launchTitle: 'Настраиваем ваш кабинет',
+    // Launch
+    launchTitle: 'Запускаем ваш магазин',
     launchSub: 'Проверяем данные и подключаем инструменты продавца',
     launchSteps: [
-      'Контакт подтверждён',
-      'Магазин зарегистрирован в JJ Seller',
+      'Турецкий контакт подтверждён',
+      'Магазин создан в JJ Seller',
       'Cargo QR и аналитика подключены',
     ],
     // Forgot
@@ -151,9 +184,29 @@ const TX = {
         cardSub: 'QR etiket 1 saniyede hazır',
       },
     ],
-    loginTitle: 'Satıcı paneli',
-    loginSub: 'Ürünlerinizi, siparişlerinizi ve Kazakistan satışlarınızı yönetin',
-    perks: ['1 dk kurulum', 'Kargo QR', 'Canlı analiz'],
+    loginHooks: [
+      {
+        tag: 'TR → KZ · Doğrudan satış',
+        title: 'Türkiye’den Kazakistan’a satın',
+        metric: '+42 800 ₸',
+        metricSub: 'günlük ciro',
+        desc: '₺ fiyatlarınız alıcılar için otomatik ₸ olarak hesaplanır',
+      },
+      {
+        tag: 'Kargo API · 1 tık',
+        title: 'Kargo QR kodunuz anında hazır',
+        metric: 'IST → ALA',
+        metricSub: '1 sn’de QR',
+        desc: 'Laleli şubesinde QR taratın, kağıt evrakla uğraşmayın',
+      },
+      {
+        tag: 'Cepte canlı panel',
+        title: 'Sipariş ve analiz 7/24 elinizde',
+        metric: '+31,8%',
+        metricSub: 'satış artışı',
+        desc: 'Ürün bazlı analiz, stok takibi ve hızlı bakiye çekimi',
+      },
+    ],
     phone: 'Telefon',
     mail: 'E-posta',
     pass: 'Şifre',
@@ -165,22 +218,30 @@ const TX = {
     demoLoaded: 'Demo bilgileri dolduruldu',
     bad: 'Kullanıcı adı veya şifre hatalı',
     loginHint: '+90 numara, e-posta veya admin',
-    or: 'veya şununla devam et',
+    or: 'veya şununla giriş yap',
     google: 'Google',
     apple: 'Apple',
-    newSeller: 'Yeni satıcı mısınız?',
-    newSellerSub: '1 dakikada mağazanızı açın',
-    regBtn: 'Mağaza aç',
+    newSellerBadge: 'Yeni satıcı',
+    newSellerTitle: 'Mağazanızı hemen açın',
+    newSellerSub: '1 dakikada ücretsiz kayıt',
+    regBtn: 'Başla',
     hasAcc: 'Zaten hesabınız var mı?',
-    // Register
-    stepLabels: ['Bilgiler', 'Kod'],
-    regTitle: 'Mağaza açın',
-    regSub: 'Türkiye’deki satıcılar için hızlı ve anlaşılır kayıt',
+    // Register live hero
+    stepLabels: ['Mağaza', 'Kod'],
+    liveWelcomeDefault: 'JJ Seller’a hoş geldiniz',
+    liveGreet: (name: string) => `Merhaba, ${name}!`,
+    liveWelcomeNamed: 'JJ Seller’a hoş geldiniz',
+    liveShopPlaceholder: 'Mağazanızın adı',
+    liveOwnerPrefix: 'Satıcı:',
+    liveOwnerPlaceholder: 'Adınız',
+    liveReadyPill: 'Yayına hazır',
+    liveTypingPill: 'Oluşturuluyor…',
+    liveProgressLbl: 'Tamamlandı',
     regGuideToggle: 'Kayıt nasıl yapılır? (3 adım)',
     regGuideSteps: [
-      'Mağaza adınızı ve kendi adınızı yazın',
+      'Mağaza adı ve adınızı yazın — üstteki önizleme anında oluşur',
       '+90 Türkiye numaranızı veya e-postanızı ve şifrenizi girin',
-      '4 haneli SMS kodunu onaylayın — paneliniz anında açılır',
+      '4 haneli kodu onaylayın — satıcı paneliniz hemen açılır',
     ],
     watchTour: 'Tanıtımı izle',
     shopLbl: 'Mağaza adı',
@@ -198,7 +259,7 @@ const TX = {
     agreePrefix: 'Kabul ediyorum: ',
     agree: ['gizlilik politikası', 'sözleşme', 'JJ Market teklifi'],
     needAgree: 'Devam etmek için koşulları kabul edin',
-    regSubmit: 'Doğrulama kodu al',
+    regSubmit: 'Oluştur ve kod al',
     consentShort: ['Devam ederek ', 'kullanım koşullarını', ' kabul edersiniz'],
     // OTP
     otpTitle: 'Doğrulama kodu',
@@ -210,11 +271,11 @@ const TX = {
     confirm: 'Onayla ve giriş yap',
     welcome: (n: string) => `Hoş geldiniz, ${n}!`,
     // Launch
-    launchTitle: 'Paneliniz hazırlanıyor',
+    launchTitle: 'Mağazanız açılıyor',
     launchSub: 'Bilgiler doğrulanıyor ve satıcı araçları bağlanıyor',
     launchSteps: [
       'İletişim doğrulandı',
-      'Mağaza JJ Seller’da açıldı',
+      'Mağaza JJ Seller’da oluşturuldu',
       'Kargo QR ve analiz bağlandı',
     ],
     // Forgot
@@ -256,9 +317,29 @@ const TX = {
         cardSub: 'QR-этикетка 1 секундта дайын',
       },
     ],
-    loginTitle: 'Сатушы кабинеті',
-    loginSub: 'Тауарларды, тапсырыстарды және сатылымды бір жерде басқарыңыз',
-    perks: ['1 минутта бастау', 'Cargo QR', 'Live-талдау'],
+    loginHooks: [
+      {
+        tag: 'TR → KZ · Тікелей сатылым',
+        title: 'Түркиядан Қазақстанға сатыңыз',
+        metric: '+42 800 ₸',
+        metricSub: 'орташа күн',
+        desc: '₺ бағаларыңыз сатып алушыларға автоматты ₸ болып көрінеді',
+      },
+      {
+        tag: 'Cargo API · 1 басу',
+        title: 'Карго QR-коды өзі келеді',
+        metric: 'IST → ALA',
+        metricSub: '1 сек дайын',
+        desc: 'Laleli бөлімшесінде QR сканерлеп, жылдам тапсырыңыз',
+      },
+      {
+        tag: 'Live-кабинет телефонда',
+        title: 'Сатылым мен төлем 24/7 бақылауда',
+        metric: '+31,8%',
+        metricSub: 'өсім',
+        desc: 'Әр тауар бойынша талдау, қалдық және шотқа шығару',
+      },
+    ],
     phone: 'Телефон',
     mail: 'E-mail',
     pass: 'Құпиясөз',
@@ -273,19 +354,27 @@ const TX = {
     or: 'немесе аккаунт арқылы',
     google: 'Google',
     apple: 'Apple',
-    newSeller: 'Жаңа сатушысыз ба?',
-    newSellerSub: '1 минутта дүкен ашыңыз',
-    regBtn: 'Дүкен ашу',
+    newSellerBadge: 'Жаңа сатушы',
+    newSellerTitle: 'Өз дүкеніңізді ашыңыз',
+    newSellerSub: '1 минутта тегін тіркелу',
+    regBtn: 'Бастау',
     hasAcc: 'Аккаунтыңыз бар ма?',
-    // Register
-    stepLabels: ['Деректер', 'Код'],
-    regTitle: 'Дүкен ашу',
-    regSub: 'Түркия сатушыларына жылдам әрі түсінікті тіркелу',
+    // Register live hero
+    stepLabels: ['Дүкен', 'Код'],
+    liveWelcomeDefault: 'JJ Seller-ге қош келдіңіз',
+    liveGreet: (name: string) => `Сәлем, ${name}!`,
+    liveWelcomeNamed: 'JJ Seller-ге қош келдіңіз',
+    liveShopPlaceholder: 'Дүкеніңіздің атауы',
+    liveOwnerPrefix: 'Иесі:',
+    liveOwnerPlaceholder: 'Атыңыз',
+    liveReadyPill: 'Іске қосуға дайын',
+    liveTypingPill: 'Құрылуда…',
+    liveProgressLbl: 'Толтырылды',
     regGuideToggle: 'Қалай тіркелу керек? (3 қадам)',
     regGuideSteps: [
-      'Дүкен атауын және өз атыңызды енгізіңіз',
-      'Түркияның +90 нөмірін немесе e-mail және құпиясөз жазыңыз',
-      '4 таңбалы SMS-кодты растаңыз — кабинет бірден ашылады',
+      'Дүкен атауы мен атыңызды жазыңыз — жоғарғы карточка бірден жанданады',
+      'Түркияның +90 нөмірін немесе e-mail және құпиясөз енгізіңіз',
+      '4 таңбалы кодты растаңыз — сатушы кабинеті бірден ашылады',
     ],
     watchTour: 'Таныстырылымды көру',
     shopLbl: 'Дүкен атауы',
@@ -303,7 +392,7 @@ const TX = {
     agreePrefix: 'Қабылдаймын: ',
     agree: ['құпиялық саясаты', 'келісім', 'JJ Market офертасы'],
     needAgree: 'Жалғастыру үшін шарттарды қабылдаңыз',
-    regSubmit: 'Код алу',
+    regSubmit: 'Дүкен ашып, код алу',
     consentShort: ['Жалғастыра отырып, ', 'қызмет шарттарын', ' қабылдайсыз'],
     // OTP
     otpTitle: 'Кодты растау',
@@ -315,11 +404,11 @@ const TX = {
     confirm: 'Растау және кіру',
     welcome: (n: string) => `Қош келдіңіз, ${n}!`,
     // Launch
-    launchTitle: 'Кабинет дайындалуда',
+    launchTitle: 'Дүкеніңіз ашылуда',
     launchSub: 'Деректер тексеріліп, сатушы құралдары қосылуда',
     launchSteps: [
       'Байланыс расталды',
-      'Дүкен JJ Seller-де тіркелді',
+      'Дүкен JJ Seller-де құрылды',
       'Cargo QR және талдау қосылды',
     ],
     // Forgot
@@ -348,8 +437,8 @@ function LangBar() {
   const nav = useNav()
   const idx = Math.max(0, LANG_META.findIndex((m) => m.code === nav.lang))
   return (
-    <div className="au2-lang" role="group" aria-label={nav.t.language}>
-      <span className="au2-lang-thumb" style={{ transform: `translateX(${idx * 100}%)` }} />
+    <div className="au3-lang" role="group" aria-label={nav.t.language}>
+      <span className="au3-lang-thumb" style={{ transform: `translateX(${idx * 100}%)` }} />
       {LANG_META.map((m) => (
         <button
           key={m.code}
@@ -364,26 +453,45 @@ function LangBar() {
   )
 }
 
+/* ---------- Ювелирный анимированный логотип JJ Seller ---------- */
+function BrandMark() {
+  return (
+    <div className="au3-brand">
+      <div className="au3-emblem">
+        <span className="au3-emblem-shine" />
+        <img src="/brand/JJ_symbol_white.svg" alt="JJ" />
+      </div>
+      <div className="au3-brand-txt">
+        <span className="au3-brand-main">JJ <b>Seller</b></span>
+        <span className="au3-brand-sub"><i />PARTNER</span>
+      </div>
+    </div>
+  )
+}
+
 function HeroTop({
   onBack, onGuide, guideLabel,
 }: {
   onBack?: () => void; onGuide?: () => void; guideLabel?: string
 }) {
   return (
-    <div className="au2-top">
+    <div className="au3-top">
       {onBack ? (
-        <button type="button" className="au2-back" onClick={onBack} aria-label="Back">
-          <ChevronLeft size={20} />
-        </button>
-      ) : (
-        <div className="au2-brand">
-          <span className="au2-logo-box"><img src="/brand/JJ_symbol_white.svg" alt="JJ" /></span>
-          <span>JJ <b>Seller</b></span>
+        <div className="au3-top-l">
+          <button type="button" className="au2-back" onClick={onBack} aria-label="Back">
+            <ChevronLeft size={20} />
+          </button>
+          <div className="au3-mini-brand">
+            <span className="au3-mini-emblem"><img src="/brand/JJ_symbol_white.svg" alt="JJ" /></span>
+            <span>JJ <b>Seller</b></span>
+          </div>
         </div>
+      ) : (
+        <BrandMark />
       )}
       <div className="au2-top-r">
         {onGuide && guideLabel && (
-          <button type="button" className="au2-guide-btn" onClick={onGuide}>
+          <button type="button" className="au3-guide-btn" onClick={onGuide}>
             <PlayCircle size={13} />
             <span>{guideLabel}</span>
           </button>
@@ -575,7 +683,7 @@ export function Auth({ onDone }: { onDone: (shop?: string) => void }) {
   )
 }
 
-/* ---------- 0. Интерактивный рекламный онбординг (можно скрыть или открыть снова) ---------- */
+/* ---------- 0. Интерактивный рекламный онбординг ---------- */
 function OnboardingTour({
   tx, onClose, onRegister, onLogin,
 }: {
@@ -590,18 +698,14 @@ function OnboardingTour({
         <div className="au2-glow a" />
         <div className="au2-glow b" />
 
-        <div className="au2-top" style={{ padding: '6px 18px 0' }}>
-          <div className="au2-brand">
-            <span className="au2-logo-box"><img src="/brand/JJ_symbol_white.svg" alt="JJ" /></span>
-            <span>JJ <b>Seller</b></span>
-          </div>
+        <div className="au3-top" style={{ padding: '6px 18px 0' }}>
+          <BrandMark />
           <div className="au2-top-r">
             <LangBar />
             <button type="button" className="au2-skip" onClick={onClose}>{tx.skip}</button>
           </div>
         </div>
 
-        {/* Рекламная анимированная сцена */}
         <div className="au2-stage" key={idx}>
           <div className="au2-orb-ring" />
           {idx === 0 && (
@@ -657,7 +761,6 @@ function OnboardingTour({
         </div>
       </div>
 
-      {/* Нижняя белая карточка описания и навигации */}
       <div className="au2-tour-sheet">
         <div className="au2-tour-copy" key={idx}>
           <span className="au2-tour-badge"><Sparkles size={11} />{slide.badge}</span>
@@ -698,7 +801,7 @@ function OnboardingTour({
   )
 }
 
-/* ---------- 1. Вход ---------- */
+/* ---------- 1. Вход — Motion-Graphics Hero + «Новый продавец» НАВЕРХУ, Google/Apple ВНИЗУ ---------- */
 function Login({
   tx, onDone, onRegister, onGuide, onSms,
 }: {
@@ -710,7 +813,15 @@ function Login({
   const [pass, setPass] = useState('')
   const [err, setErr] = useState(false)
   const [busy, setBusy] = useState<'' | 'login' | 'google' | 'apple'>('')
+  const [hookIdx, setHookIdx] = useState(0)
 
+  // Автоматическая motion-смена рекламных хуков в шапке
+  useEffect(() => {
+    const timer = setInterval(() => setHookIdx((i) => (i + 1) % 3), 3600)
+    return () => clearInterval(timer)
+  }, [])
+
+  const hook = tx.loginHooks[hookIdx]
   const isAdmin = id.trim().toLowerCase() === 'admin'
   const phoneOk = digits(id).length === 10
   const ready = (isAdmin || (mode === 0 ? phoneOk : /.+@.+\..+/.test(id))) && pass.length > 0
@@ -744,27 +855,74 @@ function Login({
     nav.toast(tx.demoLoaded)
   }
 
-  const perkIcons = [Zap, QrCode, BarChart3]
-
   return (
     <div className="au2-screen">
-      <div className="au2-hero">
+      {/* Живой рекламный motion-хедер */}
+      <div className="au3-hero">
         <div className="au2-glow a" />
+        <div className="au2-glow b" />
         <HeroTop onGuide={onGuide} guideLabel={tx.guideBtn} />
-        <div className="au2-hero-copy">
-          <h1>{tx.loginTitle}</h1>
-          <p>{tx.loginSub}</p>
-        </div>
-        <div className="au2-perks">
-          {tx.perks.map((p, i) => {
-            const Ic = perkIcons[i]
-            return <span key={p}><Ic size={12} />{p}</span>
-          })}
+
+        <div className="au3-motion-card" key={hookIdx} onClick={() => setHookIdx((hookIdx + 1) % 3)}>
+          <div className="au2-dc-shine" />
+          <div className="au3-mc-top">
+            <span className="au3-mc-tag">
+              {hookIdx === 0 ? <Globe2 size={11} /> : hookIdx === 1 ? <QrCode size={11} /> : <TrendingUp size={11} />}
+              {hook.tag}
+            </span>
+            <div className="au3-mc-metric">
+              <b>{hook.metric}</b>
+              <small>{hook.metricSub}</small>
+            </div>
+          </div>
+          <div className="au3-mc-body">
+            <div className="au3-mc-copy">
+              <h2>{hook.title}</h2>
+              <p>{hook.desc}</p>
+            </div>
+            {hookIdx === 1 ? (
+              <div className="au3-mc-qr">
+                <QrCode size={22} />
+                <i />
+              </div>
+            ) : hookIdx === 2 ? (
+              <div className="au3-mc-bars" aria-hidden>
+                <i style={{ height: '42%' }} />
+                <i style={{ height: '68%' }} />
+                <i style={{ height: '55%' }} />
+                <i className="hi" style={{ height: '100%' }} />
+              </div>
+            ) : (
+              <div className="au3-mc-route" aria-hidden>
+                <span>TR</span>
+                <em />
+                <b>KZ</b>
+              </div>
+            )}
+          </div>
+          <div className="au3-mc-dots">
+            {[0, 1, 2].map((i) => (
+              <span key={i} className={i === hookIdx ? 'on' : ''}><i /></span>
+            ))}
+          </div>
         </div>
       </div>
 
-      <div className="au2-sheet">
+      {/* Светлый лист: «Новый продавец» НАВЕРХУ (заметно и понятно!), Google/Apple ВНИЗУ */}
+      <div className="au2-sheet login">
         <div className="au2-sheet-main">
+          {/* Заметная анимированная карточка «Новый продавец» НАВЕРХУ */}
+          <button type="button" className="au3-new-banner" onClick={onRegister}>
+            <span className="au3-nb-shine" />
+            <span className="au3-nb-ic"><Store size={17} /></span>
+            <div className="au3-nb-copy">
+              <span className="au3-nb-badge"><Sparkles size={10} />{tx.newSellerBadge}</span>
+              <b>{tx.newSellerTitle}</b>
+              <small>{tx.newSellerSub}</small>
+            </div>
+            <span className="au3-nb-go">{tx.regBtn}<ArrowRight size={13} /></span>
+          </button>
+
           <Seg value={mode} items={[`${tx.phone} +90`, tx.mail]} onChange={(i) => { setMode(i); setId(''); setErr(false) }} />
 
           <form onSubmit={(e) => { e.preventDefault(); submit() }}>
@@ -827,9 +985,10 @@ function Login({
           </div>
         </div>
 
+        {/* Google & Apple опущены в самый низ */}
         <div className="au2-sheet-foot">
           <div className="au2-or"><span>{tx.or}</span></div>
-          <div className="au2-social-grid">
+          <div className="au2-social-grid" style={{ marginBottom: 4 }}>
             <button type="button" className="au2-social g" onClick={() => social('google')}>
               {busy === 'google' ? <Loader2 size={17} className="au-spin" /> : <img src="/brand/google.svg" alt="" />}
               <span>{tx.google}</span>
@@ -839,16 +998,6 @@ function Login({
               <span>{tx.apple}</span>
             </button>
           </div>
-
-          <button type="button" className="au2-cta-card" onClick={onRegister}>
-            <span className="au2-cta-ic"><Store size={17} /></span>
-            <div className="au2-cta-t">
-              <b>{tx.newSeller}</b>
-              <small>{tx.newSellerSub}</small>
-            </div>
-            <span className="au2-cta-go">{tx.regBtn}<ArrowRight size={13} /></span>
-          </button>
-
           <p className="au2-consent">
             {tx.consentShort[0]}
             <a onClick={() => nav.push('agreements')}>{tx.consentShort[1]}</a>
@@ -860,7 +1009,7 @@ function Login({
   )
 }
 
-/* ---------- 2. Регистрация (Шаг 1/2 + скрываемый гид + только +90) ---------- */
+/* ---------- 2. Регистрация — ЖИВОЙ motion-хедер, который печатает имя и магазин в реальном времени! ---------- */
 function Register({
   tx, onBack, onGuide, onSubmit,
 }: {
@@ -879,6 +1028,8 @@ function Register({
   const idOk = mode === 0 ? digits(id).length === 10 : /.+@.+\..+/.test(id)
   const ok = { shop: shop.trim().length >= 2, name: name.trim().length >= 2, id: idOk, pass: pass.length >= 6 }
   const ready = Object.values(ok).every(Boolean) && agree
+  const filledSteps = [ok.shop, ok.name, ok.id, ok.pass].filter(Boolean).length
+  const pct = Math.round((filledSteps / 4) * 100)
 
   const submit = () => {
     setTried(true)
@@ -890,25 +1041,68 @@ function Register({
     onSubmit(mode === 0 ? '+90 ' + id : id.trim(), shop.trim())
   }
 
+  const trimmedName = name.trim()
+  const trimmedShop = shop.trim()
+  const shopLetter = (trimmedShop || trimmedName || 'J')[0].toUpperCase()
+
   return (
     <div className="au2-screen">
-      <div className="au2-hero reg">
+      {/* Живой рекламный motion-хедер: печатает имя и карточку магазина прямо во время ввода */}
+      <div className="au3-hero reg">
         <div className="au2-glow a" />
+        <div className="au2-glow b" />
         <HeroTop onBack={onBack} onGuide={onGuide} guideLabel={tx.guideBtn} />
-        <div className="au2-steps">
-          <span className="on"><i>1</i>{tx.stepLabels[0]}</span>
-          <em />
-          <span><i>2</i>{tx.stepLabels[1]}</span>
+
+        {/* Динамическое приветствие по имени */}
+        <div className="au3-live-greet">
+          <div className="au3-live-line">
+            {trimmedName ? (
+              <>
+                <span className="au3-greet-hi" key={trimmedName}>{tx.liveGreet(trimmedName)}</span>
+                <small>{tx.liveWelcomeNamed}</small>
+              </>
+            ) : (
+              <span className="au3-greet-hi">{tx.liveWelcomeDefault}</span>
+            )}
+          </div>
+          <span className={'au3-live-pct' + (pct === 100 ? ' ok' : '')}>{pct}%</span>
         </div>
-        <div className="au2-hero-copy">
-          <h1>{tx.regTitle}</h1>
-          <p>{tx.regSub}</p>
+
+        {/* Живая стеклянная карточка создаваемого магазина */}
+        <div className={'au3-live-store' + (ok.shop ? ' active' : '')}>
+          <div className="au2-dc-shine" />
+          <div className="au3-ls-top">
+            <span className="au3-ls-av" key={shopLetter}>{shopLetter}</span>
+            <div className="au3-ls-info">
+              <div className="au3-ls-head">
+                <div className="au3-ls-name">
+                  {trimmedShop ? (
+                    <>
+                      <b>{trimmedShop}</b>
+                      <i className="au3-caret" />
+                    </>
+                  ) : (
+                    <span className="ph">{tx.liveShopPlaceholder}</span>
+                  )}
+                </div>
+                <span className={'au3-ls-status' + (ready ? ' ok' : '')}>
+                  {ready ? <><Check size={10} strokeWidth={3} />{tx.liveReadyPill}</> : tx.liveTypingPill}
+                </span>
+              </div>
+              <div className="au3-ls-sub">
+                <span>{tx.liveOwnerPrefix} {trimmedName || tx.liveOwnerPlaceholder}</span>
+                {id && <em>· {mode === 0 ? `+90 ${id}` : id}</em>}
+              </div>
+            </div>
+          </div>
+          <div className="au3-ls-bar">
+            <i style={{ width: `${Math.max(8, pct)}%` }} className={pct === 100 ? 'ok' : ''} />
+          </div>
         </div>
       </div>
 
       <div className="au2-sheet">
         <div className="au2-sheet-main">
-          {/* Сворачиваемая подсказка-гид по шагам регистрации */}
           <div className={'au2-acc' + (showGuide ? ' open' : '')}>
             <button type="button" className="au2-acc-h" onClick={() => setShowGuide(!showGuide)}>
               <Sparkles size={14} />
@@ -1020,7 +1214,7 @@ function Register({
   )
 }
 
-/* ---------- 3. OTP подтверждение (Шаг 2/2) ---------- */
+/* ---------- 3. OTP подтверждение ---------- */
 function Otp({
   tx, to, fromRegister, onBack, onOk,
 }: {
@@ -1122,7 +1316,7 @@ function Otp({
   )
 }
 
-/* ---------- 4. Анимационная сверка при завершении регистрации (рекламный эффект) ---------- */
+/* ---------- 4. Анимационная сверка при запуске кабинета ---------- */
 function LaunchVerify({ tx, shop, onFinish }: { tx: Tx; shop: string; onFinish: () => void }) {
   const [doneCount, setDoneCount] = useState(0)
 
