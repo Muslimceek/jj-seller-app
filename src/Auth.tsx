@@ -1,19 +1,51 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import {
   Eye, EyeOff, ChevronLeft, Phone, Mail, Store, User, Lock, Check, ShieldCheck, KeyRound,
-  Sparkles, CircleAlert, Loader2, ArrowRight, QrCode, BarChart3, Zap,
+  Sparkles, CircleAlert, Loader2, ArrowRight, QrCode, BarChart3, Zap, PlayCircle, ChevronDown,
+  MapPin, CheckCircle2, Wallet,
 } from 'lucide-react'
 import { useNav, Sheet } from './ui'
 import { LANG_META } from './i18n'
 
 /*
- * Вход и регистрация продавца JJ Seller (TR / RU / KZ).
- * Премиальный тёмно-фиолетовый hero + приподнятая светлая карточка-лист (Revolut / Kaspi / Apple стиль).
- * Регистрация и вход по телефону — только турецкий номер (+90), без флагов.
+ * Премиальный вход, интерактивный онбординг-гид (можно скрыть или открыть снова)
+ * и 2-шаговая регистрация продавца JJ Seller (TR / RU / KZ) с анимационной сверкой.
+ * Регистрация по телефону — только турецкий номер (+90), без флагов.
  */
 
 const TX = {
   ru: {
+    guideBtn: 'Гид',
+    skip: 'Скрыть',
+    next: 'Далее',
+    startReg: 'Открыть магазин',
+    goLogin: 'Уже есть аккаунт · Войти',
+    slides: [
+      {
+        badge: 'Шаг 1 · Старт за 1 минуту',
+        title: 'Откройте магазин на JJ Market',
+        desc: 'Укажите название магазина, имя и турецкий номер +90 (или e-mail). Без ИНН и бумажных договоров.',
+        cardTop: 'Новый магазин',
+        cardVal: 'Lale Boutique',
+        cardSub: 'Стамбул · Активен сразу',
+      },
+      {
+        badge: 'Шаг 2 · Продажи в Казахстан',
+        title: 'Товары в ₺ — заказы в ₸',
+        desc: 'Загружайте фото и цены в лирах. Покупатели в Алматы, Астане и Шымкенте сразу видят цену в тенге.',
+        cardTop: 'Новый заказ · Алматы',
+        cardVal: '15 824 ₸',
+        cardSub: 'Лоферы · 1 шт · Оплачено',
+      },
+      {
+        badge: 'Шаг 3 · Карго и выплаты',
+        title: 'Cargo QR и быстрые выплаты',
+        desc: 'На каждый заказ Cargo API сам выдаёт QR-код для сдачи в Laleli. Деньги сразу видны на балансе.',
+        cardTop: 'IST-LAL → ALA',
+        cardVal: 'JJ-TR-ALA-160319',
+        cardSub: 'QR-этикетка готова за 1 сек',
+      },
+    ],
     loginTitle: 'Кабинет продавца',
     loginSub: 'Управляйте товарами, заказами и продажами в Казахстан',
     perks: ['Старт за 1 мин', 'Cargo QR', 'Live-аналитика'],
@@ -38,8 +70,14 @@ const TX = {
     // Register
     stepLabels: ['Данные', 'Код'],
     regTitle: 'Открыть магазин',
-    regSub: 'Быстрая регистрация продавцов из Турции — без лишних документов',
-    regPerks: ['Без ИНН', 'Только +90 или e-mail', 'Доступ сразу'],
+    regSub: 'Регистрация продавцов из Турции — просто и понятно',
+    regGuideToggle: 'Как пройти регистрацию? (3 шага)',
+    regGuideSteps: [
+      'Введите название магазина и ваше имя',
+      'Укажите турецкий номер +90 или e-mail и пароль',
+      'Введите 4-значный SMS-код — кабинет откроется сразу',
+    ],
+    watchTour: 'Посмотреть презентацию',
     shopLbl: 'Магазин',
     shopPh: 'Lale Boutique',
     nameLbl: 'Ваше имя',
@@ -56,7 +94,7 @@ const TX = {
     agree: ['политику конфиденциальности', 'соглашение', 'оферту JJ Market'],
     needAgree: 'Подтвердите согласие с условиями',
     regSubmit: 'Получить код',
-    consentShort: ['Продолжая, вы принимаете ', 'правила сервиса'],
+    consentShort: ['Продолжая, вы принимаете ', 'правила сервиса', ''],
     // OTP
     otpTitle: 'Подтверждение',
     otpSub: 'Введите 4-значный код, отправленный на',
@@ -66,6 +104,14 @@ const TX = {
     otpBad: 'Неверный код — попробуйте 1234',
     confirm: 'Подтвердить и войти',
     welcome: (n: string) => `Добро пожаловать, ${n}!`,
+    // Animated launch verification
+    launchTitle: 'Настраиваем ваш кабинет',
+    launchSub: 'Проверяем данные и подключаем инструменты продавца',
+    launchSteps: [
+      'Контакт подтверждён',
+      'Магазин зарегистрирован в JJ Seller',
+      'Cargo QR и аналитика подключены',
+    ],
     // Forgot
     forgotT: 'Восстановление пароля',
     forgotS: 'Укажите номер +90 или e-mail — пришлём код для сброса',
@@ -74,6 +120,37 @@ const TX = {
     social: 'Вход выполнен (демо)',
   },
   tr: {
+    guideBtn: 'Rehber',
+    skip: 'Gizle',
+    next: 'Devam',
+    startReg: 'Mağaza aç',
+    goLogin: 'Zaten hesabım var · Giriş yap',
+    slides: [
+      {
+        badge: 'Adım 1 · 1 dakikada hazır',
+        title: 'JJ Market’te mağazanızı açın',
+        desc: 'Mağaza adı, adınız ve +90 Türkiye numaranızı (veya e-posta) girin. Ek belge gerekmez.',
+        cardTop: 'Yeni mağaza',
+        cardVal: 'Lale Boutique',
+        cardSub: 'İstanbul · Anında aktif',
+      },
+      {
+        badge: 'Adım 2 · Kazakistan’a satış',
+        title: 'Fiyatı ₺ girin — ₸ ile satın',
+        desc: 'Fotoğraf ve ₺ fiyat ekleyin. Almatı, Astana ve Şımkent’teki alıcılar fiyatı otomatik ₸ görür.',
+        cardTop: 'Yeni sipariş · Almatı',
+        cardVal: '15 824 ₸',
+        cardSub: 'Loafer · 1 adet · Ödendi',
+      },
+      {
+        badge: 'Adım 3 · Kargo QR ve finans',
+        title: 'Kargo QR ve hızlı ödemeler',
+        desc: 'Her siparişte Kargo API otomatik QR kod üretir. Laleli şubesinde taratın, bakiyenizi takip edin.',
+        cardTop: 'IST-LAL → ALA',
+        cardVal: 'JJ-TR-ALA-160319',
+        cardSub: 'QR etiket 1 saniyede hazır',
+      },
+    ],
     loginTitle: 'Satıcı paneli',
     loginSub: 'Ürünlerinizi, siparişlerinizi ve Kazakistan satışlarınızı yönetin',
     perks: ['1 dk kurulum', 'Kargo QR', 'Canlı analiz'],
@@ -98,8 +175,14 @@ const TX = {
     // Register
     stepLabels: ['Bilgiler', 'Kod'],
     regTitle: 'Mağaza açın',
-    regSub: 'Türkiye’deki satıcılar için hızlı kayıt — ek belge gerekmez',
-    regPerks: ['Vergi no gerekmez', '+90 veya e-posta', 'Anında erişim'],
+    regSub: 'Türkiye’deki satıcılar için hızlı ve anlaşılır kayıt',
+    regGuideToggle: 'Kayıt nasıl yapılır? (3 adım)',
+    regGuideSteps: [
+      'Mağaza adınızı ve kendi adınızı yazın',
+      '+90 Türkiye numaranızı veya e-postanızı ve şifrenizi girin',
+      '4 haneli SMS kodunu onaylayın — paneliniz anında açılır',
+    ],
+    watchTour: 'Tanıtımı izle',
     shopLbl: 'Mağaza adı',
     shopPh: 'Lale Boutique',
     nameLbl: 'Adınız',
@@ -126,6 +209,14 @@ const TX = {
     otpBad: 'Kod hatalı — 1234 deneyin',
     confirm: 'Onayla ve giriş yap',
     welcome: (n: string) => `Hoş geldiniz, ${n}!`,
+    // Launch
+    launchTitle: 'Paneliniz hazırlanıyor',
+    launchSub: 'Bilgiler doğrulanıyor ve satıcı araçları bağlanıyor',
+    launchSteps: [
+      'İletişim doğrulandı',
+      'Mağaza JJ Seller’da açıldı',
+      'Kargo QR ve analiz bağlandı',
+    ],
     // Forgot
     forgotT: 'Şifre sıfırlama',
     forgotS: '+90 numaranızı veya e-postanızı girin — sıfırlama kodu gönderelim',
@@ -134,6 +225,37 @@ const TX = {
     social: 'Giriş yapıldı (demo)',
   },
   kk: {
+    guideBtn: 'Нұсқаулық',
+    skip: 'Жасыру',
+    next: 'Келесі',
+    startReg: 'Дүкен ашу',
+    goLogin: 'Аккаунтым бар · Кіру',
+    slides: [
+      {
+        badge: '1-қадам · 1 минутта бастау',
+        title: 'JJ Market-те дүкен ашыңыз',
+        desc: 'Дүкен атауы, атыңыз және Түркияның +90 нөмірін (немесе e-mail) енгізіңіз. Артық құжатсыз.',
+        cardTop: 'Жаңа дүкен',
+        cardVal: 'Lale Boutique',
+        cardSub: 'Ыстамбұл · Бірден белсенді',
+      },
+      {
+        badge: '2-қадам · Қазақстанға сатылым',
+        title: 'Бағасы ₺ — тапсырыстар ₸',
+        desc: 'Фото және ₺ баға қосыңыз. Алматы, Астана, Шымкент сатып алушылары бағаны ₸ түрінде көреді.',
+        cardTop: 'Жаңа тапсырыс · Алматы',
+        cardVal: '15 824 ₸',
+        cardSub: 'Лоферы · 1 дана · Төленді',
+      },
+      {
+        badge: '3-қадам · Cargo QR және төлем',
+        title: 'Cargo QR және жылдам төлем',
+        desc: 'Әр тапсырысқа Cargo API автоматты QR-код береді. Laleli пунктінде сканерлеп, балансты бақылаңыз.',
+        cardTop: 'IST-LAL → ALA',
+        cardVal: 'JJ-TR-ALA-160319',
+        cardSub: 'QR-этикетка 1 секундта дайын',
+      },
+    ],
     loginTitle: 'Сатушы кабинеті',
     loginSub: 'Тауарларды, тапсырыстарды және сатылымды бір жерде басқарыңыз',
     perks: ['1 минутта бастау', 'Cargo QR', 'Live-талдау'],
@@ -158,8 +280,14 @@ const TX = {
     // Register
     stepLabels: ['Деректер', 'Код'],
     regTitle: 'Дүкен ашу',
-    regSub: 'Түркия сатушыларына жылдам тіркелу — артық құжатсыз',
-    regPerks: ['ЖСН қажет емес', '+90 немесе e-mail', 'Бірден кіру'],
+    regSub: 'Түркия сатушыларына жылдам әрі түсінікті тіркелу',
+    regGuideToggle: 'Қалай тіркелу керек? (3 қадам)',
+    regGuideSteps: [
+      'Дүкен атауын және өз атыңызды енгізіңіз',
+      'Түркияның +90 нөмірін немесе e-mail және құпиясөз жазыңыз',
+      '4 таңбалы SMS-кодты растаңыз — кабинет бірден ашылады',
+    ],
+    watchTour: 'Таныстырылымды көру',
     shopLbl: 'Дүкен атауы',
     shopPh: 'Lale Boutique',
     nameLbl: 'Атыңыз',
@@ -186,6 +314,14 @@ const TX = {
     otpBad: 'Код қате — 1234 енгізіңіз',
     confirm: 'Растау және кіру',
     welcome: (n: string) => `Қош келдіңіз, ${n}!`,
+    // Launch
+    launchTitle: 'Кабинет дайындалуда',
+    launchSub: 'Деректер тексеріліп, сатушы құралдары қосылуда',
+    launchSteps: [
+      'Байланыс расталды',
+      'Дүкен JJ Seller-де тіркелді',
+      'Cargo QR және талдау қосылды',
+    ],
     // Forgot
     forgotT: 'Құпиясөзді қалпына келтіру',
     forgotS: '+90 нөмірін немесе e-mail енгізіңіз — қалпына келтіру кодын жібереміз',
@@ -197,6 +333,7 @@ const TX = {
 type Tx = (typeof TX)['ru']
 
 const ACC_KEY = 'jj-seller-accounts'
+const TOUR_KEY = 'jj-seller-tour-seen'
 const loadAccounts = (): { id: string; pass: string; shop: string }[] => {
   try { return JSON.parse(localStorage.getItem(ACC_KEY) || '[]') } catch { return [] }
 }
@@ -206,11 +343,13 @@ const maskPhone = (s: string) => {
   return [d.slice(0, 3), d.slice(3, 6), d.slice(6, 8), d.slice(8, 10)].filter(Boolean).join(' ')
 }
 
-/* ---------- Общие элементы Auth ---------- */
+/* ---------- Плавно анимированный переключатель языка TR · RU · KZ ---------- */
 function LangBar() {
   const nav = useNav()
+  const idx = Math.max(0, LANG_META.findIndex((m) => m.code === nav.lang))
   return (
     <div className="au2-lang" role="group" aria-label={nav.t.language}>
+      <span className="au2-lang-thumb" style={{ transform: `translateX(${idx * 100}%)` }} />
       {LANG_META.map((m) => (
         <button
           key={m.code}
@@ -225,7 +364,11 @@ function LangBar() {
   )
 }
 
-function HeroTop({ onBack }: { onBack?: () => void }) {
+function HeroTop({
+  onBack, onGuide, guideLabel,
+}: {
+  onBack?: () => void; onGuide?: () => void; guideLabel?: string
+}) {
   return (
     <div className="au2-top">
       {onBack ? (
@@ -238,7 +381,15 @@ function HeroTop({ onBack }: { onBack?: () => void }) {
           <span>JJ <b>Seller</b></span>
         </div>
       )}
-      <LangBar />
+      <div className="au2-top-r">
+        {onGuide && guideLabel && (
+          <button type="button" className="au2-guide-btn" onClick={onGuide}>
+            <PlayCircle size={13} />
+            <span>{guideLabel}</span>
+          </button>
+        )}
+        <LangBar />
+      </div>
     </div>
   )
 }
@@ -348,49 +499,210 @@ function Pass({
 export function Auth({ onDone }: { onDone: (shop?: string) => void }) {
   const nav = useNav()
   const tx: Tx = (TX as any)[nav.lang] ?? TX.ru
-  const [view, setView] = useState<'login' | 'register' | 'otp'>('login')
+  const [view, setView] = useState<'tour' | 'login' | 'register' | 'otp' | 'launch'>(() => {
+    try { return localStorage.getItem(TOUR_KEY) === '1' ? 'login' : 'tour' } catch { return 'tour' }
+  })
+  const [returnTo, setReturnTo] = useState<'login' | 'register'>('login')
   const [otpTo, setOtpTo] = useState('')
   const [pendingShop, setPendingShop] = useState('')
   const [otpForLogin, setOtpForLogin] = useState(false)
 
+  const finishTour = (dest: 'login' | 'register') => {
+    try { localStorage.setItem(TOUR_KEY, '1') } catch {}
+    setView(dest)
+  }
+
+  const openTour = (from: 'login' | 'register') => {
+    setReturnTo(from)
+    setView('tour')
+  }
+
   return (
     <div className="au2" key={view}>
-      {view === 'login' && (
-        <Login
-          tx={tx}
-          onDone={onDone}
-          onRegister={() => setView('register')}
-          onSms={(to) => { setOtpTo(to); setOtpForLogin(true); setView('otp') }}
-        />
-      )}
-      {view === 'register' && (
-        <Register
-          tx={tx}
-          onBack={() => setView('login')}
-          onSubmit={(to, shop) => { setOtpTo(to); setPendingShop(shop); setOtpForLogin(false); setView('otp') }}
-        />
-      )}
-      {view === 'otp' && (
-        <Otp
-          tx={tx}
-          to={otpTo}
-          fromRegister={!otpForLogin}
-          onBack={() => setView(otpForLogin ? 'login' : 'register')}
-          onOk={() => {
-            if (pendingShop) nav.toast(tx.welcome(pendingShop))
-            onDone(pendingShop || undefined)
-          }}
-        />
-      )}
+      <div className="au2-lang-fade" key={nav.lang}>
+        {view === 'tour' && (
+          <OnboardingTour
+            tx={tx}
+            onClose={() => finishTour(returnTo)}
+            onRegister={() => finishTour('register')}
+            onLogin={() => finishTour('login')}
+          />
+        )}
+        {view === 'login' && (
+          <Login
+            tx={tx}
+            onDone={onDone}
+            onRegister={() => setView('register')}
+            onGuide={() => openTour('login')}
+            onSms={(to) => { setOtpTo(to); setOtpForLogin(true); setView('otp') }}
+          />
+        )}
+        {view === 'register' && (
+          <Register
+            tx={tx}
+            onBack={() => setView('login')}
+            onGuide={() => openTour('register')}
+            onSubmit={(to, shop) => { setOtpTo(to); setPendingShop(shop); setOtpForLogin(false); setView('otp') }}
+          />
+        )}
+        {view === 'otp' && (
+          <Otp
+            tx={tx}
+            to={otpTo}
+            fromRegister={!otpForLogin}
+            onBack={() => setView(otpForLogin ? 'login' : 'register')}
+            onOk={() => {
+              if (!otpForLogin) {
+                setView('launch')
+              } else {
+                onDone(pendingShop || undefined)
+              }
+            }}
+          />
+        )}
+        {view === 'launch' && (
+          <LaunchVerify
+            tx={tx}
+            shop={pendingShop || 'JJ Seller'}
+            onFinish={() => {
+              if (pendingShop) nav.toast(tx.welcome(pendingShop))
+              onDone(pendingShop || undefined)
+            }}
+          />
+        )}
+      </div>
     </div>
   )
 }
 
-/* ---------- Вход (Dark Hero + Elevated Full-Height Sheet) ---------- */
-function Login({
-  tx, onDone, onRegister, onSms,
+/* ---------- 0. Интерактивный рекламный онбординг (можно скрыть или открыть снова) ---------- */
+function OnboardingTour({
+  tx, onClose, onRegister, onLogin,
 }: {
-  tx: Tx; onDone: (shop?: string) => void; onRegister: () => void; onSms: (to: string) => void
+  tx: Tx; onClose: () => void; onRegister: () => void; onLogin: () => void
+}) {
+  const [idx, setIdx] = useState(0)
+  const slide = tx.slides[idx]
+
+  return (
+    <div className="au2-screen tour">
+      <div className="au2-tour-bg">
+        <div className="au2-glow a" />
+        <div className="au2-glow b" />
+
+        <div className="au2-top" style={{ padding: '6px 18px 0' }}>
+          <div className="au2-brand">
+            <span className="au2-logo-box"><img src="/brand/JJ_symbol_white.svg" alt="JJ" /></span>
+            <span>JJ <b>Seller</b></span>
+          </div>
+          <div className="au2-top-r">
+            <LangBar />
+            <button type="button" className="au2-skip" onClick={onClose}>{tx.skip}</button>
+          </div>
+        </div>
+
+        {/* Рекламная анимированная сцена */}
+        <div className="au2-stage" key={idx}>
+          <div className="au2-orb-ring" />
+          {idx === 0 && (
+            <div className="au2-demo-card float">
+              <div className="au2-dc-shine" />
+              <div className="au2-dc-top">
+                <span className="au2-dc-ic"><Store size={17} /></span>
+                <span>{slide.cardTop}</span>
+                <em className="au2-dc-ok"><Check size={11} strokeWidth={3} /></em>
+              </div>
+              <div className="au2-dc-val">{slide.cardVal}</div>
+              <div className="au2-dc-sub">
+                <span className="au2-dc-pill">TR +90</span>
+                <span>{slide.cardSub}</span>
+              </div>
+            </div>
+          )}
+          {idx === 1 && (
+            <div className="au2-demo-card float">
+              <div className="au2-dc-shine" />
+              <div className="au2-dc-top">
+                <span className="au2-dc-ic green"><MapPin size={17} /></span>
+                <span>{slide.cardTop}</span>
+                <em className="au2-dc-live">LIVE</em>
+              </div>
+              <div className="au2-dc-val">{slide.cardVal}</div>
+              <div className="au2-dc-sub">
+                <span className="au2-dc-pill green">₺ → ₸</span>
+                <span>{slide.cardSub}</span>
+              </div>
+            </div>
+          )}
+          {idx === 2 && (
+            <div className="au2-demo-card float">
+              <div className="au2-dc-shine" />
+              <div className="au2-dc-top">
+                <span className="au2-dc-ic"><QrCode size={17} /></span>
+                <span>{slide.cardTop}</span>
+                <em className="au2-dc-ok"><Wallet size={11} /></em>
+              </div>
+              <div className="au2-dc-qr-row">
+                <div className="au2-mini-qr">
+                  <QrCode size={34} />
+                  <i className="au2-laser" />
+                </div>
+                <div>
+                  <div className="au2-dc-code">{slide.cardVal}</div>
+                  <div className="au2-dc-sub" style={{ marginTop: 4 }}>{slide.cardSub}</div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Нижняя белая карточка описания и навигации */}
+      <div className="au2-tour-sheet">
+        <div className="au2-tour-copy" key={idx}>
+          <span className="au2-tour-badge"><Sparkles size={11} />{slide.badge}</span>
+          <h1>{slide.title}</h1>
+          <p>{slide.desc}</p>
+        </div>
+
+        <div className="au2-tour-dots">
+          {tx.slides.map((s, i) => (
+            <button
+              key={s.badge}
+              type="button"
+              className={i === idx ? 'on' : ''}
+              onClick={() => setIdx(i)}
+              aria-label={`Slide ${i + 1}`}
+            />
+          ))}
+        </div>
+
+        <div className="au2-tour-acts">
+          {idx < tx.slides.length - 1 ? (
+            <button type="button" className="au2-btn shine" onClick={() => setIdx(idx + 1)}>
+              <span>{tx.next}</span>
+              <ArrowRight size={17} />
+            </button>
+          ) : (
+            <button type="button" className="au2-btn shine" onClick={onRegister}>
+              <span>{tx.startReg}</span>
+              <ArrowRight size={17} />
+            </button>
+          )}
+          <button type="button" className="au2-tour-login" onClick={onLogin}>
+            {tx.goLogin}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/* ---------- 1. Вход ---------- */
+function Login({
+  tx, onDone, onRegister, onGuide, onSms,
+}: {
+  tx: Tx; onDone: (shop?: string) => void; onRegister: () => void; onGuide: () => void; onSms: (to: string) => void
 }) {
   const nav = useNav()
   const [mode, setMode] = useState(0)
@@ -416,12 +728,12 @@ function Login({
         setBusy('')
         setErr(true)
       }
-    }, 500)
+    }, 450)
   }
 
   const social = (k: 'google' | 'apple') => {
     setBusy(k)
-    setTimeout(() => { nav.toast(tx.social); onDone() }, 600)
+    setTimeout(() => { nav.toast(tx.social); onDone() }, 550)
   }
 
   const fillDemo = () => {
@@ -436,10 +748,9 @@ function Login({
 
   return (
     <div className="au2-screen">
-      {/* Dark atmospheric JJ brand hero */}
       <div className="au2-hero">
-        <div className="au2-glow" />
-        <HeroTop />
+        <div className="au2-glow a" />
+        <HeroTop onGuide={onGuide} guideLabel={tx.guideBtn} />
         <div className="au2-hero-copy">
           <h1>{tx.loginTitle}</h1>
           <p>{tx.loginSub}</p>
@@ -447,14 +758,11 @@ function Login({
         <div className="au2-perks">
           {tx.perks.map((p, i) => {
             const Ic = perkIcons[i]
-            return (
-              <span key={p}><Ic size={12} />{p}</span>
-            )
+            return <span key={p}><Ic size={12} />{p}</span>
           })}
         </div>
       </div>
 
-      {/* Elevated white sheet filling remaining height cleanly */}
       <div className="au2-sheet">
         <div className="au2-sheet-main">
           <Seg value={mode} items={[`${tx.phone} +90`, tx.mail]} onChange={(i) => { setMode(i); setId(''); setErr(false) }} />
@@ -502,19 +810,14 @@ function Login({
 
             {err && <div className="au-err"><CircleAlert size={13} />{tx.bad}</div>}
 
-            <button className={'au2-btn' + (ready ? '' : ' dis')} type="submit">
+            <button className={'au2-btn' + (ready ? ' shine' : ' dis')} type="submit">
               {busy === 'login' ? <Loader2 size={19} className="au-spin" /> : tx.login}
             </button>
           </form>
 
           <div className="au2-quick">
             {mode === 0 && (
-              <button
-                type="button"
-                className="au2-pill-btn"
-                disabled={!phoneOk}
-                onClick={() => onSms('+90 ' + id)}
-              >
+              <button type="button" className="au2-pill-btn" disabled={!phoneOk} onClick={() => onSms('+90 ' + id)}>
                 <Phone size={13} />{tx.sms}
               </button>
             )}
@@ -524,10 +827,8 @@ function Login({
           </div>
         </div>
 
-        {/* Bottom anchored block — zero awkward empty void! */}
         <div className="au2-sheet-foot">
           <div className="au2-or"><span>{tx.or}</span></div>
-
           <div className="au2-social-grid">
             <button type="button" className="au2-social g" onClick={() => social('google')}>
               {busy === 'google' ? <Loader2 size={17} className="au-spin" /> : <img src="/brand/google.svg" alt="" />}
@@ -551,7 +852,7 @@ function Login({
           <p className="au2-consent">
             {tx.consentShort[0]}
             <a onClick={() => nav.push('agreements')}>{tx.consentShort[1]}</a>
-            {tx.consentShort[2] ?? ''}
+            {tx.consentShort[2]}
           </p>
         </div>
       </div>
@@ -559,11 +860,11 @@ function Login({
   )
 }
 
-/* ---------- Регистрация (Dark Hero + 2-Step Guided Sheet, только +90) ---------- */
+/* ---------- 2. Регистрация (Шаг 1/2 + скрываемый гид + только +90) ---------- */
 function Register({
-  tx, onBack, onSubmit,
+  tx, onBack, onGuide, onSubmit,
 }: {
-  tx: Tx; onBack: () => void; onSubmit: (to: string, shop: string) => void
+  tx: Tx; onBack: () => void; onGuide: () => void; onSubmit: (to: string, shop: string) => void
 }) {
   const nav = useNav()
   const [shop, setShop] = useState('')
@@ -573,6 +874,7 @@ function Register({
   const [pass, setPass] = useState('')
   const [agree, setAgree] = useState(false)
   const [tried, setTried] = useState(false)
+  const [showGuide, setShowGuide] = useState(false)
 
   const idOk = mode === 0 ? digits(id).length === 10 : /.+@.+\..+/.test(id)
   const ok = { shop: shop.trim().length >= 2, name: name.trim().length >= 2, id: idOk, pass: pass.length >= 6 }
@@ -590,10 +892,9 @@ function Register({
 
   return (
     <div className="au2-screen">
-      {/* Compact dark hero with 2-step progress */}
       <div className="au2-hero reg">
-        <div className="au2-glow" />
-        <HeroTop onBack={onBack} />
+        <div className="au2-glow a" />
+        <HeroTop onBack={onBack} onGuide={onGuide} guideLabel={tx.guideBtn} />
         <div className="au2-steps">
           <span className="on"><i>1</i>{tx.stepLabels[0]}</span>
           <em />
@@ -603,14 +904,29 @@ function Register({
           <h1>{tx.regTitle}</h1>
           <p>{tx.regSub}</p>
         </div>
-        <div className="au2-perks">
-          {tx.regPerks.map((p) => <span key={p}><Check size={11} strokeWidth={3} />{p}</span>)}
-        </div>
       </div>
 
-      {/* Elevated scrollable form sheet */}
-      <div className="au2-sheet scroll">
+      <div className="au2-sheet">
         <div className="au2-sheet-main">
+          {/* Сворачиваемая подсказка-гид по шагам регистрации */}
+          <div className={'au2-acc' + (showGuide ? ' open' : '')}>
+            <button type="button" className="au2-acc-h" onClick={() => setShowGuide(!showGuide)}>
+              <Sparkles size={14} />
+              <span>{tx.regGuideToggle}</span>
+              <ChevronDown size={15} className="au2-acc-ic" />
+            </button>
+            {showGuide && (
+              <div className="au2-acc-b">
+                {tx.regGuideSteps.map((st, i) => (
+                  <div key={st} className="au2-acc-step"><i>{i + 1}</i><span>{st}</span></div>
+                ))}
+                <button type="button" className="au2-acc-tour" onClick={onGuide}>
+                  <PlayCircle size={13} />{tx.watchTour}
+                </button>
+              </div>
+            )}
+          </div>
+
           <div className="au2-row2">
             <Field label={tx.shopLbl}>
               <Inp
@@ -691,7 +1007,7 @@ function Register({
         </div>
 
         <div className="au2-sheet-foot">
-          <button type="button" className={'au2-btn' + (ready ? '' : ' dis')} onClick={submit}>
+          <button type="button" className={'au2-btn' + (ready ? ' shine' : ' dis')} onClick={submit}>
             <span>{tx.regSubmit}</span>
             <ArrowRight size={17} />
           </button>
@@ -704,7 +1020,7 @@ function Register({
   )
 }
 
-/* ---------- OTP подтверждение (Шаг 2/2) ---------- */
+/* ---------- 3. OTP подтверждение (Шаг 2/2) ---------- */
 function Otp({
   tx, to, fromRegister, onBack, onOk,
 }: {
@@ -730,13 +1046,13 @@ function Otp({
     setTimeout(() => {
       if (c === '1234') onOk()
       else { setBusy(false); setErr(true); setCode('') }
-    }, 450)
+    }, 400)
   }
 
   return (
     <div className="au2-screen">
       <div className="au2-hero otp">
-        <div className="au2-glow" />
+        <div className="au2-glow a" />
         <HeroTop onBack={onBack} />
         {fromRegister && (
           <div className="au2-steps">
@@ -786,7 +1102,7 @@ function Otp({
         <div className="au2-sheet-foot">
           <button
             type="button"
-            className={'au2-btn' + (code.length === 4 ? '' : ' dis')}
+            className={'au2-btn' + (code.length === 4 ? ' shine' : ' dis')}
             onClick={() => check(code)}
           >
             {busy ? <Loader2 size={19} className="au-spin" /> : tx.confirm}
@@ -806,6 +1122,52 @@ function Otp({
   )
 }
 
+/* ---------- 4. Анимационная сверка при завершении регистрации (рекламный эффект) ---------- */
+function LaunchVerify({ tx, shop, onFinish }: { tx: Tx; shop: string; onFinish: () => void }) {
+  const [doneCount, setDoneCount] = useState(0)
+
+  useEffect(() => {
+    const t1 = setTimeout(() => setDoneCount(1), 420)
+    const t2 = setTimeout(() => setDoneCount(2), 920)
+    const t3 = setTimeout(() => setDoneCount(3), 1420)
+    const t4 = setTimeout(() => onFinish(), 2150)
+    return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); clearTimeout(t4) }
+  }, [onFinish])
+
+  return (
+    <div className="au2-launch">
+      <div className="au2-glow a" />
+      <div className="au2-glow b" />
+
+      <div className="au2-launch-emblem">
+        <span className="au2-pulse r1" />
+        <span className="au2-pulse r2" />
+        <div className="au2-launch-logo">
+          <img src="/brand/JJ_symbol_white.svg" alt="JJ" />
+        </div>
+      </div>
+
+      <div className="au2-launch-shop">{shop}</div>
+      <h1>{tx.launchTitle}</h1>
+      <p>{tx.launchSub}</p>
+
+      <div className="au2-launch-list">
+        {tx.launchSteps.map((step, i) => {
+          const ok = doneCount > i
+          return (
+            <div key={step} className={'au2-launch-row' + (ok ? ' ok' : '')}>
+              <span className="au2-launch-ic">
+                {ok ? <CheckCircle2 size={17} /> : <Loader2 size={15} className="au-spin" />}
+              </span>
+              <span>{step}</span>
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
 function ForgotSheet({ tx }: { tx: Tx }) {
   const nav = useNav()
   const [v, setV] = useState('')
@@ -817,7 +1179,7 @@ function ForgotSheet({ tx }: { tx: Tx }) {
       </Inp>
       <button
         type="button"
-        className={'au2-btn' + (v.trim().length > 3 ? '' : ' dis')}
+        className={'au2-btn' + (v.trim().length > 3 ? ' shine' : ' dis')}
         style={{ marginTop: 12 }}
         onClick={() => { if (v.trim().length > 3) { nav.sheet(null); nav.toast(tx.sent) } }}
       >
