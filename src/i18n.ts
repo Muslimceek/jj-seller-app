@@ -77,6 +77,23 @@ export interface Dict {
   countries: Record<'KZ' | 'RU' | 'KG' | 'UZ', string>
   fourCountriesLine: string
   swipeLangHint: string
+  cdek: {
+    title: string
+    sub: string
+    apiReady: string
+    tabQr: string
+    tabBarcode: string
+    trackCode: string
+    waybill: string
+    copyTrack: string
+    scanHint: string
+    code128Note: string
+    fullScreen: string
+    fullTitle: string
+    downloadLabel: string
+    downloaded: string
+    apiData: string
+  }
   editProfile: {
     storeSection: string
     contactsSection: string
@@ -569,6 +586,23 @@ const TR: Dict = {
   countries: { KZ: 'Kazakistan', RU: 'Rusya', KG: 'Kırgızistan', UZ: 'Özbekistan' },
   fourCountriesLine: 'Kazakistan · Rusya · Kırgızistan · Özbekistan',
   swipeLangHint: 'Sola / sağa kaydırarak dili değiştirin',
+  cdek: {
+    title: 'CDEK Kargo Kodu',
+    sub: 'CDEK API’den otomatik alındı',
+    apiReady: 'API · Hazır',
+    tabQr: 'QR Kod',
+    tabBarcode: 'Barkod',
+    trackCode: 'CDEK Takip Kodu',
+    waybill: 'İrsaliye',
+    copyTrack: 'Kopyala',
+    scanHint: 'CDEK şubesinde taratın veya pakete yapıştırın',
+    code128Note: 'Code 128 · Barkod okuyucu uyumlu',
+    fullScreen: 'Tam ekran',
+    fullTitle: 'CDEK Teslimat Kodu',
+    downloadLabel: 'Etiketi indir',
+    downloaded: 'CDEK etiketi indirildi',
+    apiData: 'CDEK API verisi',
+  },
   editProfile: {
     storeSection: 'Mağaza bilgileri',
     contactsSection: 'İletişim bilgileri',
@@ -1020,6 +1054,23 @@ const RU: Dict = {
   countries: { KZ: 'Казахстан', RU: 'Россия', KG: 'Кыргызстан', UZ: 'Узбекистан' },
   fourCountriesLine: 'Казахстан · Россия · Кыргызстан · Узбекистан',
   swipeLangHint: 'Смахните влево / вправо для смены языка',
+  cdek: {
+    title: 'Код СДЭК · Карго',
+    sub: 'Автоматически получен по API СДЭК',
+    apiReady: 'API · Готов',
+    tabQr: 'QR-код',
+    tabBarcode: 'Штрихкод',
+    trackCode: 'Трек-код СДЭК',
+    waybill: 'Накладная',
+    copyTrack: 'Копировать',
+    scanHint: 'Покажите на пункте СДЭК или распечатайте на коробку',
+    code128Note: 'Code 128 · Для сканера и принтера',
+    fullScreen: 'На весь экран',
+    fullTitle: 'Этикетка СДЭК',
+    downloadLabel: 'Скачать этикетку',
+    downloaded: 'Этикетка СДЭК скачана',
+    apiData: 'Ответ API СДЭК',
+  },
   editProfile: {
     storeSection: 'Данные магазина',
     contactsSection: 'Контакты',

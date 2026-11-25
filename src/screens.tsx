@@ -14,6 +14,7 @@ import {
 import { useNav, T, TopBar, LangSheet, BellBtn, Sheet, SwipeLangBar } from './ui'
 import { HomeHero, DocsAlert, Actions, SalesPerformance, goOrders, takeOrdersTab, takeProductsTab } from './HomeHeader'
 import { AnalyticsPanel } from './AnalyticsPanel'
+import { CdekLabelCard } from './CdekLabelCard'
 
 const STATUS_STYLE: Record<OrderStatus, string> = {
   new: 'purple',
@@ -414,6 +415,9 @@ export function OrderDetail({ o }: { o: Order }) {
             </button>
           )}
         </div>
+
+        {/* Блок СДЭК (CDEK API): трек-код + переключатель QR-код ↔ Штрихкод + на весь экран + скачать этикетку */}
+        <CdekLabelCard order={o} status={status} />
 
         {/* Visual Location & Delivery Address Card */}
         <div className="od-map-card">
