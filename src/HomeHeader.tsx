@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import {
   Bell, ChevronRight, ArrowUpRight, ArrowDownRight, Eye, EyeOff, FileWarning, Plus,
-  Activity, ShoppingBag, Clock, AlertTriangle, Wallet, Globe2,
+  Activity, ShoppingBag, Clock, AlertTriangle, Wallet, Globe2, ArrowRight,
 } from 'lucide-react'
 import { fmt, loadSellerProfile, seller, orders, products, stats, type Period } from './data'
 import { NotificationsSheet, SwipeLangBar, useNav } from './ui'
@@ -51,6 +51,15 @@ export function HomeHero() {
   const prof = loadSellerProfile()
   const storeTitle = prof.shop || `${prof.name} ${t.home.storeSuffix}`
   const storeLetter = (storeTitle || 'J')[0]?.toUpperCase() || 'J'
+  const routeList = prof.countries.length ? prof.countries : (['KZ', 'RU', 'KG', 'UZ'] as const)
+  const [routeIdx, setRouteIdx] = useState(0)
+
+  useEffect(() => {
+    const timer = setInterval(() => setRouteIdx((i) => (i + 1) % routeList.length), 2400)
+    return () => clearInterval(timer)
+  }, [routeList.length])
+
+  const activeCC = routeList[routeIdx % routeList.length]
 
   return (
     <div className={'hero' + (shouldAnim ? ' anim-in' : '')}>
@@ -89,10 +98,23 @@ export function HomeHero() {
         <button className="bal-btn" onClick={() => nav.push('withdraw')}>{t.home.withdraw}</button>
       </section>
 
-      <div className="hero-markets">
-        <Globe2 size={12} />
-        <span>TR → {prof.countries.join(' · ')}</span>
-      </div>
+      {/* Компактная анимированная мини-карусель стран доставки */}
+      <button
+        type="button"
+        className="hero-route-car"
+        onClick={() => setRouteIdx((i) => (i + 1) % routeList.length)}
+        aria-label={t.routeFromTo}
+      >
+        <span className="hrc-origin"><Globe2 size={11} />TR</span>
+        <span className="hrc-arrow"><ArrowRight size={11} /></span>
+        <span className="hrc-slide" key={activeCC}>
+          <b>{t.countries[activeCC]}</b>
+          <em>{activeCC}</em>
+        </span>
+        <span className="hrc-dots" aria-hidden>
+          {routeList.map((cc, i) => <i key={cc} className={i === routeIdx % routeList.length ? 'on' : ''} />)}
+        </span>
+      </button>
     </div>
   )
 }

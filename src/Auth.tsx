@@ -62,9 +62,9 @@ const TX = {
       {
         tag: 'Витрина в ₺ · 1 минута',
         title: 'Удобная выкладка товаров с телефона',
-        metric: 'TR · RU · KZ',
+        metric: 'TR · RU',
         metricSub: 'автоперевод',
-        desc: 'Добавляйте фото, размеры и цены в ₺ — карточки переводятся сами',
+        desc: 'Добавляйте фото, размеры и цены в ₺ или $ — карточки переводятся сами',
       },
       {
         tag: 'Live-кабинет в телефоне',
@@ -195,9 +195,9 @@ const TX = {
       {
         tag: '₺ Vitrin · 1 dakika',
         title: 'Telefondan kolay ürün ekleme',
-        metric: 'TR · RU · KZ',
+        metric: 'TR · RU',
         metricSub: 'oto çeviri',
-        desc: 'Fotoğraf ve ₺ fiyat ekleyin — ürün kartları otomatik çevrilir',
+        desc: 'Fotoğraf ve ₺ / $ fiyat ekleyin — ürün kartları otomatik çevrilir',
       },
       {
         tag: 'Cepte canlı panel',

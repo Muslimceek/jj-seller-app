@@ -1,17 +1,15 @@
-export type Lang = 'tr' | 'ru' | 'kk'
+export type Lang = 'tr' | 'ru'
 
 export const LANG_META: { code: Lang; short: string; label: string }[] = [
   { code: 'tr', short: 'TR', label: 'Türkçe' },
   { code: 'ru', short: 'RU', label: 'Русский' },
-  { code: 'kk', short: 'KZ', label: 'Қазақша' },
 ]
 
 export function detectLang(): Lang {
   try {
     const saved = localStorage.getItem('jj_lang')
-    if (saved === 'tr' || saved === 'ru' || saved === 'kk') return saved
+    if (saved === 'tr' || saved === 'ru') return saved
   } catch {}
-  // Автоопределение региона: если пользователь в Турции (часовой пояс Istanbul / Turkey) — сразу турецкий
   try {
     const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || ''
     if (/istanbul|turkey/i.test(tz)) return 'tr'
@@ -19,11 +17,9 @@ export function detectLang(): Lang {
       const langs = (navigator.languages && navigator.languages.length ? navigator.languages : [navigator.language || ''])
         .map((s) => s.toLowerCase())
       if (langs.some((l) => l.startsWith('tr'))) return 'tr'
-      if (langs.some((l) => l.startsWith('kk') || l.startsWith('kz'))) return 'kk'
       if (langs.some((l) => l.startsWith('ru'))) return 'ru'
     }
-    if (/almaty|qyzylorda|aqtobe|aqtau|atyrau|oral/i.test(tz)) return 'kk'
-    if (/moscow|bishkek|tashkent|samarkand|novosibirsk|yekaterinburg/i.test(tz)) return 'ru'
+    if (/moscow|almaty|bishkek|tashkent|samarkand|novosibirsk|yekaterinburg/i.test(tz)) return 'ru'
   } catch {}
   return 'tr'
 }
@@ -35,9 +31,7 @@ export function saveLang(l: Lang) {
 }
 
 export interface Dict {
-  // Navigation tabs
   tabs: { home: string; products: string; orders: string; analytics: string; profile: string }
-  // Common
   all: string
   search: string
   clear: string
@@ -80,18 +74,6 @@ export interface Dict {
   topCities: string
   topSizes: string
   tapForStats: string
-  cargoQrTitle: string
-  cargoQrSub: string
-  cargoQrGet: string
-  cargoQrLoading: string
-  cargoQrReady: string
-  cargoQrScanHint: string
-  cargoQrFullScreen: string
-  cargoQrDownload: string
-  cargoQrDownloaded: string
-  cargoQrTrack: string
-  cargoQrApiData: string
-  cargoQrBtn: string
   countries: Record<'KZ' | 'RU' | 'KG' | 'UZ', string>
   fourCountriesLine: string
   swipeLangHint: string
@@ -112,7 +94,6 @@ export interface Dict {
     passCur: string
     passNew: string
   }
-  // Home
   home: {
     welcome: string
     storeSuffix: string
@@ -138,8 +119,8 @@ export interface Dict {
     recentOrders: string
     seeAll: string
     finance: string
+    shippingTo: string
   }
-  // Products
   products: {
     title: string
     searchPh: string
@@ -170,8 +151,14 @@ export interface Dict {
     detailTitle: string
     stockHistory: string
     stockHistoryEmpty: string
+    detailStatus: string
+    detailPrice: string
+    detailTotalStock: string
+    detailVariantsCnt: string
+    detailFullPhoto: string
+    detailCropHint: string
+    detailLastMove: string
   }
-  // Orders
   orders: {
     title: string
     searchPh: string
@@ -198,7 +185,6 @@ export interface Dict {
     created: string
     paidRef: string
   }
-  // Analytics
   analytics: {
     title: string
     statsTitle: string
@@ -221,7 +207,6 @@ export interface Dict {
     sold: string
     stock: string
   }
-  // Profile
   profile: {
     title: string
     storeActive: string
@@ -254,7 +239,6 @@ export interface Dict {
     deleteAcc: string
     saveChanges: string
   }
-  // Subscreens
   finance: {
     title: string
     currentBalance: string
@@ -270,8 +254,28 @@ export interface Dict {
     reqSent: string
     enterAmount: string
     pickBank: string
+    payoutCurrency: string
+    addCardBtn: string
+    addCardTitle: string
+    bankNameLbl: string
+    bankNamePh: string
+    cardNumLbl: string
+    cardNumPh: string
+    cardAdded: string
+    cardDeleted: string
+    noCards: string
+    rateNote: string
   }
-  // Product Form
+  sub: {
+    docsList: string[]
+    brandDocsReqs: string[]
+    brandDocsWarn: string
+    rulesSections: { h: string; p: string }[]
+    faqs: [string, string][]
+    agreements: string[]
+    agreementHeading: string
+    agreementBody: string
+  }
   pf: {
     newProduct: string
     editProduct: string
@@ -310,6 +314,18 @@ export interface Dict {
     moveLeft: string
     moveRight: string
     photoGuide: string
+    cropBtn: string
+    cropTitle: string
+    cropSub: string
+    cropRatio34: string
+    cropRatio11: string
+    cropFitFull: string
+    cropTopFocus: string
+    cropZoom: string
+    cropRotate: string
+    cropApply: string
+    cropSaved: string
+    cropSafeZone: string
     videoTitle: string
     videoSub: string
     addVideo: string
@@ -334,13 +350,26 @@ export interface Dict {
     colorsTitle: string
     colorsSub: string
     colorsSelected: string
+    colorSearchPh: string
+    colorPaletteBtn: string
+    colorPaletteTitle: string
+    colorCustomNamePh: string
+    colorAddBtn: string
+    colorShowMore: string
+    colorShowLess: string
     sizesTitle: string
     sizesAutoSub: string
     oneSizeNote: string
     sizesAutoTip: string
     popularSizes: string
+    sizeSearchAddPh: string
+    sizeAddCustom: string
+    sizeCustomAdded: string
     showTable: string
     hideTable: string
+    sizeLessonTitle: string
+    sizeLessonSteps: [string, string, string]
+    sizeTapRowHint: string
     otherTables: string
     variantsReady: string
     oneColor: string
@@ -360,9 +389,20 @@ export interface Dict {
     skuHint: string
     logisticsTitle: string
     stockUnit: string
+    stockUnits: string[]
     weight: string
+    boxTitle: string
+    boxSub: string
+    boxLen: string
+    boxWid: string
+    boxHei: string
+    unitCm: string
+    unitMm: string
     minOrder: string
     maxOrder: string
+    minMaxHelpTitle: string
+    minHelpText: string
+    maxHelpText: string
     previewTitle: string
     noPrice: string
     noName: string
@@ -387,8 +427,98 @@ export interface Dict {
     deleteProduct: string
     originOpts: [string, string, string]
     sizeTableNames: Record<string, string>
+    colorNames: Record<string, string>
+    tagNames: Record<string, string>
+    catNames: Record<string, string>
+    attrLabels: Record<string, string>
+    attrOpts: Record<string, string[]>
   }
 }
+
+const CAT_RU: Record<string, string> = {
+  'Kadın': 'Женщинам',
+  'Elbiseler': 'Платья',
+  'Kadın Dış Giyim': 'Женская верхняя одежда',
+  'Kadın Bluz ve Tişörtleri': 'Блузы и футболки',
+  'Bluz ve Gömlek': 'Блузы и рубашки',
+  'Kadın Pantolon ve Kotları': 'Брюки и джинсы',
+  'Kot Pantolon': 'Джинсы',
+  'Kadın Etek': 'Юбки',
+  'Kadın Triko': 'Трикотаж',
+  'Erkek': 'Мужчинам',
+  'Erkek Tişört': 'Мужские футболки',
+  'Erkek Gömlek': 'Мужские рубашки',
+  'Erkek Pantolon': 'Мужские брюки',
+  'Erkek Dış Giyim': 'Мужская верхняя одежда',
+  'Erkek Takım Elbise': 'Костюмы',
+  'Çocuk': 'Детям',
+  'Kız Çocuk': 'Девочкам',
+  'Erkek Çocuk': 'Мальчикам',
+  'Bebek': 'Малышам',
+  'Kadın ayakkabısı': 'Женская обувь',
+  'Loafer': 'Лоферы',
+  'Babet': 'Балетки',
+  'Sneaker': 'Кроссовки',
+  'Bot': 'Ботинки',
+  'Çizme': 'Сапоги',
+  'Topuklu Ayakkabı': 'Туфли на каблуке',
+  'Erkek ayakkabısı': 'Мужская обувь',
+  'Klasik': 'Классика',
+  'Çocuk ayakkabısı': 'Детская обувь',
+  'Kız Çocuk Ayakkabı': 'Обувь для девочек',
+  'Erkek Çocuk Ayakkabı': 'Обувь для мальчиков',
+  'Çantalar ve Aksesuarlar': 'Сумки и аксессуары',
+  'Kadın Çanta': 'Женские сумки',
+  'Cüzdan': 'Кошельки',
+  'Kemer': 'Ремни',
+  'Şal ve Eşarp': 'Шали и платки',
+  'Güzellik ve Bakım': 'Красота и уход',
+  'Cilt Bakımı': 'Уход за кожей',
+  'Makyaj': 'Макияж',
+  'Parfüm': 'Парфюмерия',
+  'Diyet takviyeleri ve vitaminler': 'Витамины и БАДы',
+  'Vitaminler': 'Витамины',
+  'Mineraller': 'Минералы',
+  'Ev ve Yaşam': 'Дом и уют',
+  'Ev Tekstili': 'Домашний текстиль',
+  'Mutfak': 'Кухня',
+  'Dekorasyon': 'Декор',
+  'Takılar': 'Украшения',
+  'Kolye': 'Колье',
+  'Gıda Ürünleri': 'Продукты питания',
+  'Oto Yedek Parça': 'Автозапчасти',
+  'Ev Temizlik Ürünleri': 'Товары для уборки',
+}
+
+const COLOR_RU: Record<string, string> = {
+  'Siyah': 'Чёрный',
+  'Beyaz': 'Белый',
+  'Gri': 'Серый',
+  'Koyu gri': 'Тёмно-серый',
+  'Açık gri': 'Светло-серый',
+  'Melanj': 'Меланж',
+  'Kırmızı': 'Красный',
+  'Bordo': 'Бордовый',
+  'Pembe': 'Розовый',
+  'Pudra': 'Пудровый',
+  'Fuşya': 'Фуксия',
+  'Turuncu': 'Оранжевый',
+  'Kahverengi': 'Коричневый',
+  'Haki': 'Хаки',
+  'Lacivert': 'Тёмно-синий',
+}
+
+const COLOR_TR: Record<string, string> = Object.fromEntries(Object.keys(COLOR_RU).map((k) => [k, k]))
+
+const TAG_RU: Record<string, string> = {
+  'Gerçek deri': 'Натуральная кожа',
+  'El yapımı': 'Ручная работа',
+  '%100 pamuk': '100% хлопок',
+  'Su geçirmez': 'Водоотталкивающий',
+  'Türkiye üretimi': 'Сделано в Турции',
+  'Organik': 'Органик',
+}
+const TAG_TR: Record<string, string> = Object.fromEntries(Object.keys(TAG_RU).map((k) => [k, k]))
 
 const TR: Dict = {
   tabs: { home: 'Ana Sayfa', products: 'Ürünler', orders: 'Siparişler', analytics: 'Analiz', profile: 'Profil' },
@@ -434,18 +564,6 @@ const TR: Dict = {
   topCities: 'Sipariş gelen şehirler',
   topSizes: 'En çok satılan bedenler',
   tapForStats: 'Detay için dokunun',
-  cargoQrTitle: 'Kargo QR etiketi',
-  cargoQrSub: 'Kargo API üzerinden otomatik oluşturulur',
-  cargoQrGet: 'Kargo API’den QR al',
-  cargoQrLoading: 'Kargo API’den QR alınıyor…',
-  cargoQrReady: 'Kargo API · Hazır',
-  cargoQrScanHint: 'Kargo şubesinde taratın veya pakete yapıştırın',
-  cargoQrFullScreen: 'Tam ekran QR',
-  cargoQrDownload: 'Etiketi indir',
-  cargoQrDownloaded: 'Kargo QR etiketi indirildi',
-  cargoQrTrack: 'Takip kodu',
-  cargoQrApiData: 'Kargo API verisi',
-  cargoQrBtn: 'QR Kargo',
   countries: { KZ: 'Kazakistan', RU: 'Rusya', KG: 'Kırgızistan', UZ: 'Özbekistan' },
   fourCountriesLine: 'Kazakistan · Rusya · Kırgızistan · Özbekistan',
   swipeLangHint: 'Sola / sağa kaydırarak dili değiştirin',
@@ -491,6 +609,7 @@ const TR: Dict = {
     recentOrders: 'Son siparişler',
     seeAll: 'Tümü',
     finance: 'Finans',
+    shippingTo: 'Gönderim',
   },
   products: {
     title: 'Ürünlerim',
@@ -521,7 +640,14 @@ const TR: Dict = {
     copiedToast: 'Kopyalandı',
     detailTitle: 'Ürün Detayları',
     stockHistory: 'Stok geçmişi',
-    stockHistoryEmpty: 'Stok geçmişi boş',
+    stockHistoryEmpty: 'Son hareket: +5 adet eklendi',
+    detailStatus: 'Durum',
+    detailPrice: 'Fiyat',
+    detailTotalStock: 'Toplam stok',
+    detailVariantsCnt: 'Varyant',
+    detailFullPhoto: '3:4 tam görünüm',
+    detailCropHint: 'Görsel kesilmeden 3:4 oranında gösterilir',
+    detailLastMove: 'Stok hareketi',
   },
   orders: {
     title: 'Siparişler',
@@ -590,7 +716,7 @@ const TR: Dict = {
     rules: 'Ürün listeleme kuralları',
     agreements: 'Kullanıcı sözleşmesi',
     logout: 'Çıkış Yap',
-    logoutToast: 'Çıkış yapıldı (demo)',
+    logoutToast: 'Çıkış yapıldı',
     editTitle: 'Profili Düzenle',
     name: 'Ad',
     surname: 'Soyad',
@@ -610,14 +736,48 @@ const TR: Dict = {
     linkCardSub: 'Para çekmek için kart veya IBAN ekleyin',
     requestPayout: 'Ödeme talep et',
     history: 'İşlem geçmişi',
-    withdrawTitle: 'Yeni Çekim',
-    amount: 'Tutar',
-    amountPh: 'Çekim tutarını girin',
-    selectBank: 'Banka Hesabı Seçin',
-    sendReq: 'Talebi Gönder',
-    reqSent: 'Talep gönderildi',
+    withdrawTitle: 'Para Çekme',
+    amount: 'Çekim tutarı',
+    amountPh: 'Tutarı girin',
+    selectBank: 'Kartlarım ve IBAN hesaplarım',
+    sendReq: 'Çekim talebi gönder',
+    reqSent: 'Çekim talebiniz alındı',
     enterAmount: 'Çekim tutarını girin',
-    pickBank: 'Banka hesabı seçin',
+    pickBank: 'Bir kart veya IBAN seçin',
+    payoutCurrency: 'Çekim para birimi',
+    addCardBtn: 'Yeni kart / IBAN ekle',
+    addCardTitle: 'Kart veya IBAN ekle',
+    bankNameLbl: 'Banka adı',
+    bankNamePh: 'Örn: Garanti BBVA, Ziraat, İş Bankası',
+    cardNumLbl: 'IBAN veya kart numarası',
+    cardNumPh: 'TR00 0000 0000 0000 0000 0000 00',
+    cardAdded: 'Kart eklendi',
+    cardDeleted: 'Kart silindi',
+    noCards: 'Henüz kayıtlı kart yok — aşağıdan ekleyin',
+    rateNote: 'Güncel kur ile otomatik dönüştürülür',
+  },
+  sub: {
+    docsList: ['Pasaport / Kimlik', 'Ticaret Lisansı', 'Banka / IBAN'],
+    brandDocsReqs: [
+      'Satın alma belgeleri: üreticiden fatura, tedarik sözleşmesi, resmi distribütörden irsaliyeler',
+      'Ürünün orijinalliğini ve menşeini kanıtlayan belgeler',
+      'İthalat ve satışın yasal olduğunu gösteren belgeler',
+      'Uygunluk ve etiketleme belgeleri',
+    ],
+    brandDocsWarn: 'Türkiye’deki bir mağazadan alınmış tek bir fiş yeterli değildir.',
+    rulesSections: [
+      { h: '1. Genel kurallar', p: 'Platformda yalnızca orijinal, yasal olarak satılabilen ve açıklamasıyla birebir uyumlu ürünler listelenebilir.' },
+      { h: '2. Yasaklı ürünler', p: 'Silah, ilaç, alkol, tütün ürünleri, sahte belgeler ve mevzuata aykırı ürünler listelenemez.' },
+      { h: '3. Belge gerektiren markalar', p: 'Bazı markalar yalnızca belge onayıyla satılabilir. Belgeler onaylanana kadar ürünler moderasyonda kalır.' },
+    ],
+    faqs: [
+      ['Platformda nasıl satıcı olunur?', 'JJ Seller uygulamasında kayıt olun, mağaza belgelerinizi yükleyin ve ürün eklemeye başlayın.'],
+      ['Sipariş durumu nasıl takip edilir?', '«Siparişler» bölümünde her siparişin güncel durumunu ve teslimat adresini görebilirsiniz.'],
+      ['Uygun beden nasıl seçilir?', 'Ürün kartına beden tablosu ekleyin — TR / RU / INT sistemleri otomatik eşleşir.'],
+    ],
+    agreements: ['Gizlilik politikası', 'İade politikası', 'Kişisel verilerin korunması', 'Ödeme ve iade', 'Teslimat koşulları', 'Üyelik sözleşmesi'],
+    agreementHeading: 'GİZLİLİK POLİTİKASI',
+    agreementBody: 'İşbu Gizlilik Politikası, JJ Market mobil uygulamasını kullanan satıcıların kişisel verilerinin korunması ve işlenmesine ilişkin esasları belirler.',
   },
   pf: {
     newProduct: 'Yeni ürün',
@@ -629,10 +789,10 @@ const TR: Dict = {
     heads: ['Ürün ne?', 'Fotoğraflar', 'Ürün bilgileri', 'Renk ve beden', 'Fiyat ve stok', 'Kontrol ve yayın'],
     subs: [
       'Doğru kategori, ürünün aramada bulunmasını ve doğru beden tablosunu sağlar.',
-      'İlk fotoğraf kapak olur. Sıralamak için fotoğrafa dokunun.',
+      'İlk fotoğraf kapak olur. Yüklediğiniz fotoğrafı 3:4 oranında kırpıp hizalayın.',
       'Ad ve özellikler alıcının aradığı kelimelerle eşleşmeli.',
-      'Renkleri ve bedenleri seçin — varyantlar otomatik oluşur.',
-      'Fiyatı ₺ veya ₸ olarak girin, alıcı fiyatı otomatik hesaplanır.',
+      'Renkleri paletten seçin, bedenleri listeden veya kendiniz ekleyin.',
+      'Fiyatı ₺ TRY veya $ USD girin, stok ve kargo kutu ölçülerini belirleyin.',
       'Kart kalitesini kontrol edin ve moderasyona gönderin.',
     ],
     nextPrefix: 'Devam',
@@ -654,7 +814,7 @@ const TR: Dict = {
     photoGreat: 'Harika!',
     photoRec: 'önerilen: 3+',
     dropTitle: 'Ürün fotoğraflarını ekleyin',
-    dropSub: 'İlk fotoğraf vitrin kapağı olur. En az 3 açı (önden, arkadan, detay) satışı arttırır.',
+    dropSub: 'Yükledikten sonra 3:4 çerçevede kırpın — modelin başı ve ürün kesilmeden net görünsün.',
     fromGallery: 'Galeriden seç',
     camera: 'Kamera',
     demoPhotos: 'Hızlı test için örnek fotoğraf ekle',
@@ -663,11 +823,23 @@ const TR: Dict = {
     makeCover: 'Kapak fotoğrafı yap',
     moveLeft: 'Sola taşı',
     moveRight: 'Sağa taşı',
-    photoGuide: 'İyi fotoğraf rehberi',
+    photoGuide: 'Fotoğraf çerçeve rehberi',
+    cropBtn: 'Kırp / Hizala',
+    cropTitle: 'Fotoğrafı kırp ve hizala',
+    cropSub: 'Fotoğrafı sürükleyin — baş ve ürün tamamen çerçevede kalsın',
+    cropRatio34: '3:4 Vitrin',
+    cropRatio11: '1:1 Kare',
+    cropFitFull: 'Tam sığdır',
+    cropTopFocus: 'Üst (yüz)',
+    cropZoom: 'Yakınlaştır',
+    cropRotate: 'Döndür',
+    cropApply: 'Kırpmayı uygula',
+    cropSaved: 'Fotoğraf 3:4 oranında kaydedildi',
+    cropSafeZone: 'Güvenli vitrin alanı (3:4)',
     videoTitle: 'Ürün videosu',
     videoSub: 'İsteğe bağlı · en fazla 3 video · 60 sn · 150 MB',
     addVideo: 'Video ekle',
-    autoTranslate: 'Ürün adı ve açıklaması alıcılar için TR · RU · KZ dillerine otomatik çevrilir.',
+    autoTranslate: 'Ürün adı ve açıklaması alıcılar için TR · RU dillerine otomatik çevrilir.',
     prodName: 'Ürün adı',
     prodNamePh: 'Örn: Kadın pamuklu oversize gömlek',
     suggestTitle: 'Kategoriden başlık öner',
@@ -677,8 +849,8 @@ const TR: Dict = {
     brandless: 'Markasız',
     desc: 'Açıklama',
     descPh: 'Yumuşak pamuklu kumaştan, rahat kesimli…',
-    aiDesc: 'AI ile açıklama oluştur',
-    aiDescToast: 'AI açıklama oluşturuldu',
+    aiDesc: 'Otomatik açıklama oluştur',
+    aiDescToast: 'Açıklama oluşturuldu',
     attrsTitle: 'Özellikler',
     attrsFilled: 'dolduruldu · filtrelerde görünürlüğü arttırır',
     filterBadge: 'Filtre',
@@ -686,37 +858,65 @@ const TR: Dict = {
     tagsTitle: 'Öne çıkan etiketler',
     tagsSub: 'Alıcı kartında rozet olarak görünür',
     colorsTitle: 'Renkler',
-    colorsSub: 'Birden fazla renk seçebilirsiniz',
+    colorsSub: 'Arayın veya paletten kendi tonunuzu seçin',
     colorsSelected: 'renk seçildi',
+    colorSearchPh: 'Renk ara (örn: siyah, bordo, bej)…',
+    colorPaletteBtn: 'Palet',
+    colorPaletteTitle: 'Renk paletinden özel ton seçin',
+    colorCustomNamePh: 'Renk adı (örn: Zümrüt, Krem)',
+    colorAddBtn: 'Rengi ekle',
+    colorShowMore: 'Tüm renkler',
+    colorShowLess: 'Daralt',
     sizesTitle: 'Bedenler',
     sizesAutoSub: 'tablosu · kategoriye göre otomatik',
     oneSizeNote: 'Bu kategoride beden yok — ürün «Tek beden» olarak satılır.',
     sizesAutoTip: 'TR / RU / INT sistemleri otomatik eşleşir',
     popularSizes: 'Popüler bedenler',
-    showTable: 'Beden dönüşüm tablosunu gör',
-    hideTable: 'Tabloyu gizle',
+    sizeSearchAddPh: 'Beden ara veya yaz (örn: 46, 37.5, 2XL)',
+    sizeAddCustom: 'Ekle',
+    sizeCustomAdded: 'Özel beden eklendi',
+    showTable: 'Beden rehberi ve tablosu',
+    hideTable: 'Beden rehberini gizle',
+    sizeLessonTitle: 'Beden tablosu nasıl okunur?',
+    sizeLessonSteps: [
+      '1. Etiketteki TR / EU bedeninizi seçin',
+      '2. Alıcılar kendi alışık olduğu RU / INT bedenini otomatik görür',
+      '3. Tabloda herhangi bir satıra dokunarak bedeni hemen seçebilirsiniz',
+    ],
+    sizeTapRowHint: 'Seçmek için satıra dokunun',
     otherTables: 'Diğer tablolar:',
     variantsReady: 'varyant hazır',
     oneColor: 'Tek renk',
     colorWord: 'renk',
     sizeWord: 'beden',
     priceTitle: 'Satış fiyatı',
-    priceSub: '₺ TRY veya ₸ KZT girin · alıcı ₸ görür',
+    priceSub: '₺ TRY veya $ USD girin · fiyatlar otomatik hesaplanır',
     quickDiscount: 'Hızlı indirim:',
     noDiscount: 'Yok',
     discountLbl: 'İndirim (%)',
     discountedPrice: 'İndirimli fiyat',
-    buyerPrice: 'Alıcı fiyatı (KZ · RU · KG · UZ)',
+    buyerPrice: 'Dönüştürülen fiyat',
     rateLbl: 'Kur',
     stockTitle: 'Stok yönetimi',
     bulkQuick: 'Hepsine tek tıkla:',
     bulkCustom: 'Özel adet',
     skuHint: 'Stok kodu (SKU) her varyant için otomatik oluşturulur.',
-    logisticsTitle: 'Kargo ve sipariş ayarları',
+    logisticsTitle: 'Kargo, kutu ölçüsü ve sipariş',
     stockUnit: 'Stok birimi',
+    stockUnits: ['Adet', 'Çift', 'Paket', 'Takım', 'Düzine', 'kg', 'gram', 'metre', 'cm'],
     weight: 'Ağırlık (kg)',
+    boxTitle: 'Kargo kutu ölçüleri',
+    boxSub: 'Kargo hacim hesabı için paket ölçüsünü girin',
+    boxLen: 'Uzunluk',
+    boxWid: 'Genişlik',
+    boxHei: 'Yükseklik',
+    unitCm: 'cm',
+    unitMm: 'mm',
     minOrder: 'Min. sipariş',
     maxOrder: 'Maks. sipariş',
+    minMaxHelpTitle: 'Min. ve Maks. sipariş ne işe yarar?',
+    minHelpText: 'Min. sipariş — müşterinin tek seferde alabileceği en az adet (tekli satış için 1, seri/paket için 3–5).',
+    maxHelpText: 'Maks. sipariş — tek siparişte alınabilecek üst sınır; stoğunuzun tek kişi tarafından aniden bitmesini önler.',
     previewTitle: 'Alıcı vitrin önizlemesi',
     noPrice: 'Fiyat girilmedi',
     noName: 'Ürün adı girilmedi',
@@ -739,7 +939,7 @@ const TR: Dict = {
     hideProduct: 'Ürünü gizle',
     hideProductSub: 'Alıcılar ürünü görmez, stok korunur',
     deleteProduct: 'Ürünü sil',
-    originOpts: ['Türkiye', 'Kazakistan', 'Diğer'],
+    originOpts: ['Türkiye', 'Diğer', 'El yapımı'],
     sizeTableNames: {
       women: 'Kadın giyim',
       men: 'Erkek giyim',
@@ -747,6 +947,24 @@ const TR: Dict = {
       shoes: 'Ayakkabı',
       kids: 'Çocuk giyim',
       one: 'Tek beden',
+    },
+    colorNames: COLOR_TR,
+    tagNames: TAG_TR,
+    catNames: Object.fromEntries(Object.keys(CAT_RU).map((k) => [k, k])),
+    attrLabels: {
+      mat: 'Malzeme',
+      season: 'Sezon',
+      fit: 'Kalıp',
+      pattern: 'Desen',
+      sleeve: 'Kol boyu',
+      origin: 'Menşei',
+    },
+    attrOpts: {
+      mat: ['Pamuk', 'Polyester', 'Viskon', 'Keten', 'Yün', 'Deri', 'Süet', 'Denim', 'Elastan'],
+      season: ['İlkbahar/Yaz', 'Sonbahar/Kış', 'Dört mevsim'],
+      fit: ['Dar', 'Normal', 'Oversize'],
+      pattern: ['Düz', 'Ekose', 'Çizgili', 'Çiçekli', 'Baskılı'],
+      sleeve: ['Kolsuz', 'Kısa kol', 'Uzun kol'],
     },
   },
 }
@@ -795,18 +1013,6 @@ const RU: Dict = {
   topCities: 'Города заказов',
   topSizes: 'Популярные размеры',
   tapForStats: 'Нажмите для анализа',
-  cargoQrTitle: 'QR-код карго',
-  cargoQrSub: 'Автоматически приходит из Cargo API по заказу',
-  cargoQrGet: 'Получить QR из Cargo API',
-  cargoQrLoading: 'Запрос QR в Cargo API…',
-  cargoQrReady: 'Cargo API · Готов',
-  cargoQrScanHint: 'Покажите на пункте сдачи карго или распечатайте на посылку',
-  cargoQrFullScreen: 'На весь экран',
-  cargoQrDownload: 'Скачать этикетку',
-  cargoQrDownloaded: 'QR-этикетка скачана',
-  cargoQrTrack: 'Трек-код',
-  cargoQrApiData: 'Ответ Cargo API',
-  cargoQrBtn: 'QR Карго',
   countries: { KZ: 'Казахстан', RU: 'Россия', KG: 'Кыргызстан', UZ: 'Узбекистан' },
   fourCountriesLine: 'Казахстан · Россия · Кыргызстан · Узбекистан',
   swipeLangHint: 'Смахните влево / вправо для смены языка',
@@ -852,6 +1058,7 @@ const RU: Dict = {
     recentOrders: 'Последние заказы',
     seeAll: 'Все',
     finance: 'Финансы',
+    shippingTo: 'Доставка',
   },
   products: {
     title: 'Мои товары',
@@ -882,7 +1089,14 @@ const RU: Dict = {
     copiedToast: 'Скопировано',
     detailTitle: 'Карточка товара',
     stockHistory: 'История остатков',
-    stockHistoryEmpty: 'История остатков пуста',
+    stockHistoryEmpty: 'Последнее движение: +5 шт добавлено',
+    detailStatus: 'Статус',
+    detailPrice: 'Цена',
+    detailTotalStock: 'Общий остаток',
+    detailVariantsCnt: 'Варианты',
+    detailFullPhoto: 'Полный кадр 3:4',
+    detailCropHint: 'Фото показано целиком в формате 3:4 без обрезки',
+    detailLastMove: 'Движение склада',
   },
   orders: {
     title: 'Заказы',
@@ -951,7 +1165,7 @@ const RU: Dict = {
     rules: 'Правила размещения',
     agreements: 'Соглашения',
     logout: 'Выйти из аккаунта',
-    logoutToast: 'Выход выполнен (демо)',
+    logoutToast: 'Выход выполнен',
     editTitle: 'Редактировать профиль',
     name: 'Имя',
     surname: 'Фамилия',
@@ -972,13 +1186,47 @@ const RU: Dict = {
     requestPayout: 'Запросить выплату',
     history: 'История операций',
     withdrawTitle: 'Вывод средств',
-    amount: 'Сумма',
-    amountPh: 'Введите сумму вывода',
-    selectBank: 'Выберите банковский счёт',
-    sendReq: 'Отправить заявку',
-    reqSent: 'Заявка отправлена',
-    enterAmount: 'Введите сумму',
-    pickBank: 'Выберите счёт',
+    amount: 'Сумма вывода',
+    amountPh: 'Введите сумму',
+    selectBank: 'Ваши карты и счета IBAN',
+    sendReq: 'Отправить заявку на вывод',
+    reqSent: 'Заявка на вывод отправлена',
+    enterAmount: 'Введите сумму вывода',
+    pickBank: 'Выберите карту или IBAN',
+    payoutCurrency: 'Валюта вывода',
+    addCardBtn: 'Добавить карту / IBAN',
+    addCardTitle: 'Новая карта или IBAN',
+    bankNameLbl: 'Название банка',
+    bankNamePh: 'Напр: Garanti BBVA, Ziraat, Kaspi',
+    cardNumLbl: 'IBAN или номер карты',
+    cardNumPh: 'TR00 0000 0000 0000 0000 0000 00',
+    cardAdded: 'Карта добавлена',
+    cardDeleted: 'Карта удалена',
+    noCards: 'Нет привязанных карт — добавьте ниже',
+    rateNote: 'Конвертация по актуальному курсу JJ',
+  },
+  sub: {
+    docsList: ['Паспорт / ID', 'Лицензия / ИП', 'Банк / IBAN'],
+    brandDocsReqs: [
+      'Документы о закупке: счёт-фактура от производителя, договор поставки, накладные официального дистрибьютора',
+      'Документы, подтверждающие оригинальность и происхождение товара',
+      'Документы о праве на экспорт и продажу',
+      'Сертификаты соответствия и маркировки',
+    ],
+    brandDocsWarn: 'Одного кассового чека из розничного магазина в Турции недостаточно.',
+    rulesSections: [
+      { h: '1. Общие правила', p: 'На площадке разрешено размещать только оригинальные товары, полностью соответствующие фото и описанию.' },
+      { h: '2. Запрещённые товары', p: 'Запрещены оружие, лекарства, алкоголь, табак, поддельные документы и иные товары, ограниченные законом.' },
+      { h: '3. Бренды с проверкой', p: 'Отдельные бренды публикуются после подтверждения документов. До проверки карточки находятся на модерации.' },
+    ],
+    faqs: [
+      ['Как стать продавцом на JJ Market?', 'Зарегистрируйтесь в приложении JJ Seller, загрузите документы магазина в разделе «Профиль» и начните добавлять товары.'],
+      ['Как отслеживать заказы?', 'В разделе «Заказы» виден текущий статус, город покупателя и полная история по каждому заказу.'],
+      ['Как правильно указать размеры?', 'Выберите категорию — таблица размеров подберётся сама, а системы TR / RU / INT синхронизируются автоматически.'],
+    ],
+    agreements: ['Политика конфиденциальности', 'Политика возврата', 'Защита персональных данных', 'Оплата и выплаты', 'Условия доставки', 'Пользовательское соглашение'],
+    agreementHeading: 'ПОЛИТИКА КОНФИДЕНЦИАЛЬНОСТИ',
+    agreementBody: 'Настоящая Политика конфиденциальности определяет порядок обработки и защиты персональных данных продавцов приложения JJ Seller.',
   },
   pf: {
     newProduct: 'Новый товар',
@@ -990,10 +1238,10 @@ const RU: Dict = {
     heads: ['Что за товар?', 'Фотографии', 'Информация о товаре', 'Цвета и размеры', 'Цена и остатки', 'Проверка и публикация'],
     subs: [
       'Точная категория помогает покупателям найти товар и подбирает таблицу размеров.',
-      'Первое фото станет обложкой. Нажмите на фото, чтобы изменить порядок.',
+      'Первое фото — обложка. Обрежьте и выровняйте кадр 3:4, чтобы товар и голова модели не обрезались.',
       'Название и характеристики влияют на выдачу в поиске.',
-      'Выберите цвета и размеры — варианты создадутся автоматически.',
-      'Укажите цену в ₺ или ₸ — цена для покупателя в ₸ пересчитается сама.',
+      'Найдите цвет в поиске или палитре, выберите размеры или добавьте свой.',
+      'Укажите цену в ₺ TRY или $ USD, остатки и габариты коробки для карго.',
       'Проверьте качество карточки перед отправкой на модерацию.',
     ],
     nextPrefix: 'Далее',
@@ -1015,7 +1263,7 @@ const RU: Dict = {
     photoGreat: 'Отлично!',
     photoRec: 'рекомендуется 3+',
     dropTitle: 'Добавьте фото товара',
-    dropSub: 'Первое фото — обложка. Минимум 3 ракурса повышают продажи.',
+    dropSub: 'После загрузки обрежьте фото в формате 3:4 — так товар и модель будут видны целиком без обрезанной головы.',
     fromGallery: 'Из галереи',
     camera: 'Камера',
     demoPhotos: 'Добавить демо-фото для теста',
@@ -1024,11 +1272,23 @@ const RU: Dict = {
     makeCover: 'Сделать обложкой',
     moveLeft: 'Сдвинуть влево',
     moveRight: 'Сдвинуть вправо',
-    photoGuide: 'Требования к фото',
+    photoGuide: 'Требования к кадру',
+    cropBtn: 'Обрезать / Кадр',
+    cropTitle: 'Обрезка и кадрирование',
+    cropSub: 'Подвиньте фото пальцем, чтобы модель и товар целиком поместились в рамку',
+    cropRatio34: '3:4 Витрина',
+    cropRatio11: '1:1 Квадрат',
+    cropFitFull: 'Вместить всё',
+    cropTopFocus: 'Верх (лицо)',
+    cropZoom: 'Масштаб',
+    cropRotate: 'Повернуть',
+    cropApply: 'Сохранить кадр',
+    cropSaved: 'Фото обрезано в размер 3:4',
+    cropSafeZone: 'Зона видимости витрины (3:4)',
     videoTitle: 'Видео товара',
     videoSub: 'Необязательно · до 3 видео · 60 сек · 150 МБ',
     addVideo: 'Добавить видео',
-    autoTranslate: 'Название и описание автоматически переводятся на TR · RU · KZ.',
+    autoTranslate: 'Название и описание автоматически переводятся на TR · RU.',
     prodName: 'Название товара',
     prodNamePh: 'Напр: Женская хлопковая рубашка оверсайз',
     suggestTitle: 'Предложить название',
@@ -1038,8 +1298,8 @@ const RU: Dict = {
     brandless: 'Без бренда',
     desc: 'Описание',
     descPh: 'Мягкая хлопковая ткань, свободный крой…',
-    aiDesc: 'Создать описание с AI',
-    aiDescToast: 'Описание создано с AI',
+    aiDesc: 'Создать описание автоматически',
+    aiDescToast: 'Описание создано',
     attrsTitle: 'Характеристики',
     attrsFilled: 'заполнено · помогают в фильтрах',
     filterBadge: 'Фильтр',
@@ -1047,37 +1307,65 @@ const RU: Dict = {
     tagsTitle: 'Теги товара',
     tagsSub: 'Отображаются бейджами на карточке',
     colorsTitle: 'Цвета',
-    colorsSub: 'Можно выбрать несколько цветов',
+    colorsSub: 'Найдите в поиске или выберите свой оттенок в палитре',
     colorsSelected: 'цв. выбрано',
+    colorSearchPh: 'Поиск цвета (напр: чёрный, бордо, хаки)…',
+    colorPaletteBtn: 'Палитра',
+    colorPaletteTitle: 'Выбор своего оттенка из палитры',
+    colorCustomNamePh: 'Название цвета (напр: Изумрудный, Беж)',
+    colorAddBtn: 'Добавить цвет',
+    colorShowMore: 'Все цвета',
+    colorShowLess: 'Свернуть',
     sizesTitle: 'Размеры',
     sizesAutoSub: '— таблица подобрана по категории',
     oneSizeNote: 'Для этой категории размер не требуется — «Единый размер».',
     sizesAutoTip: 'Системы TR / RU / INT синхронизируются автоматически',
     popularSizes: 'Популярные',
-    showTable: 'Таблица соответствия размеров',
-    hideTable: 'Скрыть таблицу',
+    sizeSearchAddPh: 'Найти или ввести свой размер (напр: 46, 37.5, 2XL)',
+    sizeAddCustom: 'Добавить',
+    sizeCustomAdded: 'Свой размер добавлен',
+    showTable: 'Таблица соответствия и урок по размерам',
+    hideTable: 'Скрыть таблицу размеров',
+    sizeLessonTitle: 'Как работает таблица размеров?',
+    sizeLessonSteps: [
+      '1. Выберите размер с турецкой бирки (TR / EU)',
+      '2. Покупатели в KZ, RU, KG, UZ увидят привычный размер (RU / INT)',
+      '3. Нажмите на любую строку таблицы — размер сразу добавится в товар',
+    ],
+    sizeTapRowHint: 'Нажмите на строку, чтобы выбрать размер',
     otherTables: 'Другие таблицы:',
     variantsReady: 'вариантов готово',
     oneColor: 'Один цвет',
     colorWord: 'цв.',
     sizeWord: 'разм.',
     priceTitle: 'Цена продажи',
-    priceSub: 'Вводите в ₺ TRY или ₸ KZT · покупатель видит ₸',
+    priceSub: 'Вводите в ₺ TRY или $ USD · пересчёт автоматический',
     quickDiscount: 'Скидка:',
     noDiscount: 'Нет',
     discountLbl: 'Скидка (%)',
     discountedPrice: 'Цена со скидкой',
-    buyerPrice: 'Цена для покупателя (KZ · RU · KG · UZ)',
+    buyerPrice: 'Эквивалент цены',
     rateLbl: 'Курс',
     stockTitle: 'Остатки на складе',
     bulkQuick: 'Всем в 1 клик:',
     bulkCustom: 'Своё кол-во',
     skuHint: 'Артикул (SKU) создаётся автоматически для каждого варианта.',
-    logisticsTitle: 'Логистика и заказ',
+    logisticsTitle: 'Логистика, коробка и заказ',
     stockUnit: 'Ед. учёта',
+    stockUnits: ['Штука', 'Пара', 'Упаковка', 'Комплект', 'Дюжина', 'кг', 'г', 'метр', 'см'],
     weight: 'Вес (кг)',
+    boxTitle: 'Габариты коробки для карго',
+    boxSub: 'Укажите размеры упаковки товара для расчёта доставки карго',
+    boxLen: 'Длина',
+    boxWid: 'Ширина',
+    boxHei: 'Высота',
+    unitCm: 'см',
+    unitMm: 'мм',
     minOrder: 'Мин. заказ',
     maxOrder: 'Макс. заказ',
+    minMaxHelpTitle: 'Зачем указывать Мин. и Макс. заказ?',
+    minHelpText: 'Мин. заказ — минимальное количество штук в одном заказе (1 шт — для розницы, 3–5 шт — если продаёте серией или упаковкой).',
+    maxHelpText: 'Макс. заказ — ограничение в одни руки за один заказ, чтобы один покупатель не выкупил сразу весь остаток.',
     previewTitle: 'Как увидит покупатель',
     noPrice: 'Цена не указана',
     noName: 'Название не указано',
@@ -1100,7 +1388,7 @@ const RU: Dict = {
     hideProduct: 'Скрыть товар',
     hideProductSub: 'Покупатели не увидят товар, остатки сохранятся',
     deleteProduct: 'Удалить товар',
-    originOpts: ['Турция', 'Казахстан', 'Другая'],
+    originOpts: ['Турция', 'Другая', 'Ручная работа'],
     sizeTableNames: {
       women: 'Женская одежда',
       men: 'Мужская одежда',
@@ -1109,369 +1397,26 @@ const RU: Dict = {
       kids: 'Детская одежда',
       one: 'Единый размер',
     },
-  },
-}
-
-const KK: Dict = {
-  tabs: { home: 'Басты бет', products: 'Тауарлар', orders: 'Тапсырыстар', analytics: 'Талдау', profile: 'Профиль' },
-  all: 'Барлығы',
-  search: 'Іздеу',
-  clear: 'Тазалау',
-  cancel: 'Болдырмау',
-  save: 'Сақтау',
-  saved: 'Сақталды',
-  edit: 'Өңдеу',
-  delete: 'Жою',
-  back: 'Артқа',
-  continue: 'Жалғастыру',
-  apply: 'Қолдану',
-  change: 'Өзгерту',
-  pieces: 'дана',
-  noResults: 'Нәтиже табылмады',
-  noResultsSub: 'Іздеу сөзін немесе сүзгіні өзгертіп көріңіз',
-  language: 'Тіл',
-  notificationsNone: 'Жаңа хабарлама жоқ',
-  notificationsTitle: 'Тапсырыс хабарламалары',
-  newOrderNotif: 'Жаңа тапсырыс түсті',
-  copied: 'Көшірілді',
-  copyAddress: 'Мекенжайды көшіру',
-  callBuyer: 'Қоңырау',
-  openOrder: 'Тапсырысты ашу',
-  city: 'Қала',
-  house: 'Көше және үй',
-  apartment: 'Пәтер',
-  recipient: 'Алушы',
-  routeFromTo: 'Жеткізу бағыты',
-  inProcessing: 'Өңделуде',
-  thisMonth: 'Осы айда',
-  txAll: 'Барлығы',
-  txIn: 'Түсімдер',
-  txOut: 'Шығарулар',
-  txCredited: 'Есептелді',
-  txPaidOut: 'Төленді',
-  withdrawAll: 'Барлығы',
-  linkedAccount: 'Байланған шот',
-  productAnalytics: 'Тауар талдауы',
-  inCart: 'Себетте',
-  topCities: 'Тапсырыс қалалары',
-  topSizes: 'Танымал өлшемдер',
-  tapForStats: 'Талдау үшін басыңыз',
-  cargoQrTitle: 'Карго QR-коды',
-  cargoQrSub: 'Тапсырыс бойынша Cargo API-ден автоматты алынады',
-  cargoQrGet: 'Cargo API-ден QR алу',
-  cargoQrLoading: 'Cargo API-ден QR алынуда…',
-  cargoQrReady: 'Cargo API · Дайын',
-  cargoQrScanHint: 'Карго бөлімшесінде сканерлетіңіз немесе сәлемдемеге жапсырыңыз',
-  cargoQrFullScreen: 'Толық экран',
-  cargoQrDownload: 'Этикетканы жүктеу',
-  cargoQrDownloaded: 'QR-этикетка жүктелді',
-  cargoQrTrack: 'Трек-код',
-  cargoQrApiData: 'Cargo API дерегі',
-  cargoQrBtn: 'QR Карго',
-  countries: { KZ: 'Қазақстан', RU: 'Ресей', KG: 'Қырғызстан', UZ: 'Өзбекстан' },
-  fourCountriesLine: 'Қазақстан · Ресей · Қырғызстан · Өзбекстан',
-  swipeLangHint: 'Тілді ауыстыру үшін солға / оңға сырғытыңыз',
-  editProfile: {
-    storeSection: 'Дүкен деректері',
-    contactsSection: 'Байланыс',
-    geoSection: 'Сату географиясы (4 ел)',
-    geoSub: 'Түркиядан 4 елге тікелей сатылым',
-    securitySection: 'Қауіпсіздік',
-    shopName: 'Дүкен атауы',
-    shopPh: 'Мыс: Lale Boutique',
-    cityDistrict: 'Қала / Аудан (Түркия)',
-    cityDistrictPh: 'İstanbul · Laleli',
-    verified: 'Расталған',
-    deleteConfirmTitle: 'Аккаунтты жою керек пе?',
-    deleteConfirmSub: 'Дүкен деректері мен тапсырыстар тарихы өшіріледі.',
-    passTitle: 'Құпиясөзді өзгерту',
-    passCur: 'Қазіргі құпиясөз',
-    passNew: 'Жаңа құпиясөз (6+ таңба)',
-  },
-  home: {
-    welcome: 'Қош келдіңіз,',
-    storeSuffix: 'Дүкені',
-    verified: 'Белсенді дүкен',
-    balance: 'Баланс',
-    available: 'шығаруға қолжетімді',
-    withdraw: 'Шығару',
-    docsTitle: 'Дүкенді растау',
-    docsSub: 'Төлқұжат, лицензия және банк деректерін жүктеңіз',
-    quickTitle: 'Жылдам әрекеттер',
-    addProduct: 'Тауар қосу',
-    pendingOrders: 'Жаңа тапсырыс',
-    inProgress: 'Дайындалуда',
-    lowStock: 'Қоймада аз',
-    delivered: 'Жеткізілді',
-    salesPerf: 'Сатылым динамикасы',
-    liveMonitor: 'Талдау',
-    today: 'Бүгін',
-    last7d: '7 күн',
-    ordersLbl: 'Тапсырыстар',
-    todaySales: 'Бүгінгі айналым',
-    weekSales: 'Апталық айналым',
-    recentOrders: 'Соңғы тапсырыстар',
-    seeAll: 'Барлығы',
-    finance: 'Қаржы',
-  },
-  products: {
-    title: 'Менің тауарларым',
-    searchPh: 'Тауар атауы бойынша іздеу…',
-    kpiTotal: 'Барлығы',
-    kpiActive: 'Сатылымда',
-    kpiLow: 'Аз қалды',
-    tabAll: 'Барлығы',
-    tabActive: 'Сатылымда',
-    tabLow: 'Аз қалдық',
-    tabHidden: 'Жасырын',
-    active: 'Белсенді',
-    hidden: 'Жасырын',
-    stock: 'Қалдық',
-    variants: 'нұсқа',
-    lowBadge: 'Аз қалды',
-    hide: 'Жасыру',
-    show: 'Көрсету',
-    hiddenToast: 'Тауар жасырылды',
-    shownToast: 'Тауар қайта сатылымда',
-    addBtn: 'Жаңа тауар қосу',
-    sortNewest: 'Сұрыптау: Жаңалары',
-    sortStock: 'Сұрыптау: Қалдығы аздар',
-    sortTitle: 'Сұрыптау: Әліпби бойынша',
-    actions: 'Әрекеттер',
-    duplicate: 'Көшіру',
-    share: 'Бөлісу',
-    copiedToast: 'Көшірілді',
-    detailTitle: 'Тауар деректері',
-    stockHistory: 'Қалдық тарихы',
-    stockHistoryEmpty: 'Қалдық тарихы бос',
-  },
-  orders: {
-    title: 'Тапсырыстар',
-    searchPh: 'Нөмір немесе тауар іздеу…',
-    empty: 'Бұл күйде тапсырыс жоқ',
-    emptySub: 'Жаңа тапсырыстар осында пайда болады',
-    tabs: { all: 'Барлығы', new: 'Жаңа', processing: 'Дайындалуда', shipped: 'Жіберілді', delivered: 'Жеткізілді', cancelled: 'Бас тартылды' },
-    status: { new: 'Жаңа', processing: 'Дайындалуда', shipped: 'Жолда', delivered: 'Жеткізілді', cancelled: 'Бас тартылды' },
-    confirm: 'Растау',
-    ship: 'Жіберу',
-    confirmedToast: 'Тапсырыс расталды',
-    shippedToast: 'Жеткізуге берілді',
-    detailTitle: 'Тапсырыс',
-    deliveryAddr: 'Жеткізу мекенжайы',
-    cargoAddr: 'Карго тапсыру мекенжайы',
-    cargoHint: 'Дайындалған тапсырысты осы мекенжайға жіберіңіз.',
-    orderAmount: 'Тапсырыс сомасы',
-    delivery: 'Жеткізу',
-    total: 'Барлығы',
-    payment: 'Төлем әдісі',
-    paid: 'Төленді',
-    refunded: 'Қайтарылды',
-    customerInfo: 'Сатып алушы',
-    timeline: 'Тапсырыс тарихы',
-    created: 'Тапсырыс жасалды',
-    paidRef: 'Төлем сәтті өтті (tolepay)',
-  },
-  analytics: {
-    title: 'Талдау',
-    statsTitle: 'Сатылым статистикасы',
-    report: 'Есеп',
-    periods: { 'Gün': 'Күн', 'Hafta': 'Апта', 'Ay': 'Ай', 'Çeyrek': 'Тоқсан' },
-    revenue: 'Айналым',
-    orders: 'Тапсырыс',
-    avgOrder: 'Орт. чек',
-    conversion: 'Конверсия',
-    prev: 'Алдыңғы',
-    views: 'қаралым',
-    currentPeriod: 'Осы кезең',
-    prevPeriod: 'Алдыңғы',
-    tapHint: 'Толығырақ көру үшін бағанды басыңыз',
-    funnelTitle: 'Сатылым воронкасы',
-    funnelViews: 'Қаралымдар',
-    funnelCart: 'Себетке қосу',
-    funnelOrders: 'Тапсырыстар',
-    popularTitle: 'Танымал тауарлар',
-    sold: 'сатылым',
-    stock: 'Қалдық',
-  },
-  profile: {
-    title: 'Профиль',
-    storeActive: 'Белсенді сатушы',
-    statProducts: 'Тауар',
-    statRating: 'Рейтинг',
-    statBalance: 'Баланс',
-    secBusiness: 'Дүкен және қаржы',
-    secApp: 'Қолданба және тіл',
-    secSupport: 'Қолдау және ережелер',
-    finance: 'Қаржы',
-    documents: 'Дүкен құжаттары',
-    brandDocs: 'Бренд құжаттары',
-    reviews: 'Пікірлер',
-    settings: 'Хабарламалар',
-    support: 'Қолдау қызметі',
-    faq: 'Жиі қойылатын сұрақтар',
-    rules: 'Тауар орналастыру ережелері',
-    agreements: 'Келісімшарттар',
-    logout: 'Шығу',
-    logoutToast: 'Шығу орындалды (демо)',
-    editTitle: 'Профильді өңдеу',
-    name: 'Аты',
-    surname: 'Тегі',
-    phone: 'Телефон',
-    email: 'E-mail',
-    changePhone: 'Өзгерту',
-    changeEmail: 'Өзгерту',
-    unverified: 'Расталмаған',
-    changePass: 'Құпия сөзді өзгерту',
-    deleteAcc: 'Аккаунтты жою',
-    saveChanges: 'Өзгерістерді сақтау',
-  },
-  finance: {
-    title: 'Қаржы',
-    currentBalance: 'Ағымдағы баланс',
-    linkCard: 'Карта байлау',
-    linkCardSub: 'Ақша шығару үшін карта немесе IBAN қосыңыз',
-    requestPayout: 'Төлем сұрау',
-    history: 'Операциялар тарихы',
-    withdrawTitle: 'Ақша шығару',
-    amount: 'Сома',
-    amountPh: 'Шығару сомасын енгізіңіз',
-    selectBank: 'Банк шотын таңдаңыз',
-    sendReq: 'Өтінім жіберу',
-    reqSent: 'Өтінім жіберілді',
-    enterAmount: 'Соманы енгізіңіз',
-    pickBank: 'Банк шотын таңдаңыз',
-  },
-  pf: {
-    newProduct: 'Жаңа тауар',
-    editProduct: 'Тауарды өңдеу',
-    stepOf: 'Қадам',
-    draft: 'Жоба',
-    draftSaved: 'Жоба сақталды',
-    steps: ['Санат', 'Фото', 'Ақпарат', 'Нұсқалар', 'Баға & Қор', 'Алдын ала'],
-    heads: ['Қандай тауар?', 'Фотосуреттер', 'Тауар туралы', 'Түс және өлшем', 'Баға және қор', 'Тексеру және жариялау'],
-    subs: [
-      'Дұрыс санат іздеуде табылуға және өлшем кестесін автоматты таңдауға көмектеседі.',
-      'Бірінші фото мұқаба болады. Ретін ауыстыру үшін фотоны басыңыз.',
-      'Атауы мен сипаттамасы сатып алушы іздейтін сөздерге сәйкес болуы керек.',
-      'Түстер мен өлшемдерді таңдаңыз — нұсқалар автоматты құрылады.',
-      'Бағаны ₺ немесе ₸ түрінде енгізіңіз — сатып алушы бағасы ₸ автоматты есептеледі.',
-      'Модерацияға жібермес бұрын карточка сапасын тексеріңіз.',
-    ],
-    nextPrefix: 'Келесі',
-    publish: 'Модерацияға жіберу',
-    saveChanges: 'Өзгерістерді сақтау',
-    publishedToast: 'Тауар модерацияға жіберілді',
-    catSearchPh: 'Не сатасыз? Мыс: көйлек, лофер, джинсы…',
-    selectedCat: 'Таңдалған санат',
-    sizeAuto: 'Өлшем',
-    recent: 'Соңғы қолданылғандар',
-    allCats: 'Барлық санаттар',
-    sections: 'бөлім',
-    subCount: 'ішкі санат',
-    directPick: 'Бірден таңдау',
-    subPickHint: 'біреуін таңдаңыз',
-    noCatTitle: 'бойынша табылмады',
-    noCatSub: 'Танымал санаттарды байқап көріңіз:',
-    photoTitle: 'Тауар фотосуреттері',
-    photoGreat: 'Тамаша!',
-    photoRec: 'ұсынылады: 3+',
-    dropTitle: 'Тауар фотоларын қосыңыз',
-    dropSub: 'Бірінші фото мұқаба болады. Кемінде 3 ракурс сатылымды арттырады.',
-    fromGallery: 'Галереядан',
-    camera: 'Камера',
-    demoPhotos: 'Тест үшін үлгі фото қосу',
-    demoAdded: 'Үлгі фотолар қосылды',
-    cover: 'Мұқаба',
-    makeCover: 'Мұқаба жасау',
-    moveLeft: 'Солға жылжыту',
-    moveRight: 'Оңға жылжыту',
-    photoGuide: 'Фото талаптары',
-    videoTitle: 'Тауар видеосы',
-    videoSub: 'Міндетті емес · 3 видеоға дейін · 60 сек · 150 МБ',
-    addVideo: 'Видео қосу',
-    autoTranslate: 'Атауы мен сипаттамасы TR · RU · KZ тілдеріне автоматты аударылады.',
-    prodName: 'Тауар атауы',
-    prodNamePh: 'Мыс: Әйелдер мақта көйлегі оверсайз',
-    suggestTitle: 'Атау ұсыну',
-    titleApplied: 'Атау қолданылды',
-    brand: 'Бренд',
-    brandPh: 'Брендті таңдаңыз немесе іздеңіз',
-    brandless: 'Брендсіз',
-    desc: 'Сипаттама',
-    descPh: 'Жұмсақ мақта мата, еркін пішім…',
-    aiDesc: 'AI арқылы сипаттама жазу',
-    aiDescToast: 'AI сипаттама жасалды',
-    attrsTitle: 'Сипаттамалары',
-    attrsFilled: 'толтырылды · сүзгілерде көрінуді арттырады',
-    filterBadge: 'Сүзгі',
-    multiBadge: 'бірнеше',
-    tagsTitle: 'Тауар тегтері',
-    tagsSub: 'Тауар карточкасында белгіше ретінде көрінеді',
-    colorsTitle: 'Түстер',
-    colorsSub: 'Бірнеше түс таңдауға болады',
-    colorsSelected: 'түс таңдалды',
-    sizesTitle: 'Өлшемдер',
-    sizesAutoSub: 'кестесі · санат бойынша автоматты',
-    oneSizeNote: 'Бұл санатта өлшем жоқ — «Бірыңғай өлшем».',
-    sizesAutoTip: 'TR / RU / INT жүйелері автоматты сәйкестендіріледі',
-    popularSizes: 'Танымал өлшемдер',
-    showTable: 'Өлшемдер кестесін көру',
-    hideTable: 'Кестені жасыру',
-    otherTables: 'Басқа кестелер:',
-    variantsReady: 'нұсқа дайын',
-    oneColor: 'Бір түс',
-    colorWord: 'түс',
-    sizeWord: 'өлшем',
-    priceTitle: 'Сату бағасы',
-    priceSub: '₺ TRY немесе ₸ KZT енгізіңіз · сатып алушы ₸ көреді',
-    quickDiscount: 'Жеңілдік:',
-    noDiscount: 'Жоқ',
-    discountLbl: 'Жеңілдік (%)',
-    discountedPrice: 'Жеңілдікпен баға',
-    buyerPrice: 'Сатып алушы бағасы (KZ · RU · KG · UZ)',
-    rateLbl: 'Бағам',
-    stockTitle: 'Қоймадағы қор',
-    bulkQuick: 'Барлығына 1 рет басып:',
-    bulkCustom: 'Басқа сан',
-    skuHint: 'Әр нұсқа үшін артикул (SKU) автоматты жасалады.',
-    logisticsTitle: 'Жеткізу және тапсырыс',
-    stockUnit: 'Өлшем бірлігі',
-    weight: 'Салмағы (кг)',
-    minOrder: 'Мин. тапсырыс',
-    maxOrder: 'Макс. тапсырыс',
-    previewTitle: 'Сатып алушы көрінісі',
-    noPrice: 'Баға көрсетілмеген',
-    noName: 'Атау көрсетілмеген',
-    sumVariants: 'Нұсқалар',
-    sumStock: 'Жалпы қор',
-    sumSellerPrice: 'Сатушы бағасы',
-    qualityTitle: 'Карточка сапасы',
-    qGreat: 'Өте жақсы',
-    qGood: 'Жақсы',
-    qLow: 'Толықтыру қажет',
-    qGreatSub: 'Тамаша — тауар іздеуде жоғары тұрады',
-    qLowSub: 'Толтырылмаған жолды басып жылдам түзетіңіз',
-    fillBtn: 'Толтыру',
-    errCat: 'Санатты таңдаңыз',
-    errPhoto: 'Кемінде 1 фото қосыңыз',
-    errName: 'Тауар атауын енгізіңіз',
-    errSize: 'Кемінде 1 өлшем таңдаңыз',
-    errPrice: 'Бағаны көрсетіңіз',
-    errStock: 'Қалдықты көрсетіңіз',
-    hideProduct: 'Тауарды жасыру',
-    hideProductSub: 'Сатып алушылар көрмейді, қор сақталады',
-    deleteProduct: 'Тауарды жою',
-    originOpts: ['Түркия', 'Қазақстан', 'Басқа'],
-    sizeTableNames: {
-      women: 'Әйелдер киімі',
-      men: 'Ерлер киімі',
-      jeans: 'Джинсы / шалбар',
-      shoes: 'Аяқ киім',
-      kids: 'Балалар киімі',
-      one: 'Бірыңғай өлшем',
+    colorNames: COLOR_RU,
+    tagNames: TAG_RU,
+    catNames: CAT_RU,
+    attrLabels: {
+      mat: 'Материал',
+      season: 'Сезон',
+      fit: 'Посадка',
+      pattern: 'Узор',
+      sleeve: 'Рукав',
+      origin: 'Производство',
+    },
+    attrOpts: {
+      mat: ['Хлопок', 'Полиэстер', 'Вискоза', 'Лён', 'Шерсть', 'Кожа', 'Замша', 'Деним', 'Эластан'],
+      season: ['Весна/Лето', 'Осень/Зима', 'Всесезон'],
+      fit: ['Облегающий', 'Обычный', 'Оверсайз'],
+      pattern: ['Однотонный', 'Клетка', 'Полоска', 'Цветочный', 'Принт'],
+      sleeve: ['Без рукавов', 'Короткий рукав', 'Длинный рукав'],
     },
   },
 }
 
-export const DICTS: Record<Lang, Dict> = { tr: TR, ru: RU, kk: KK }
-export const getDict = (lang: string): Dict => DICTS[(lang as Lang) in DICTS ? (lang as Lang) : 'tr']
+export const DICTS: Record<Lang, Dict> = { tr: TR, ru: RU }
+export const getDict = (lang: string): Dict => DICTS[lang === 'ru' ? 'ru' : 'tr']

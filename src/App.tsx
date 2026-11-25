@@ -41,7 +41,7 @@ function render(r: Route, t: ReturnType<typeof getDict>): ReactNode {
 function Clock({ lang }: { lang: Lang }) {
   const [now, setNow] = useState(new Date())
   useEffect(() => { const i = setInterval(() => setNow(new Date()), 20000); return () => clearInterval(i) }, [])
-  const loc = lang === 'ru' ? 'ru-RU' : lang === 'kk' ? 'kk-KZ' : 'tr-TR'
+  const loc = lang === 'ru' ? 'ru-RU' : 'tr-TR'
   return <>{now.toLocaleTimeString(loc, { hour: '2-digit', minute: '2-digit' })}</>
 }
 

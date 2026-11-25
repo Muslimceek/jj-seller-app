@@ -80,7 +80,7 @@ function OrderCard({
   )
 }
 
-/* ---------- Ana Sayfa (Главная) ---------- */
+/* ---------- Ana Sayfa (Главная — без баннера верификации, он перенесён в Профиль) ---------- */
 export function Home() {
   const nav = useNav()
   const { t } = nav
@@ -88,7 +88,6 @@ export function Home() {
     <div className="screen">
       <div className="scroll home">
         <HomeHero />
-        <DocsAlert />
         <Actions />
         <SalesPerformance />
         <div className="sec-h">
@@ -540,89 +539,350 @@ export function OrderDetail({ o }: { o: Order }) {
   )
 }
 
-/* ---------- Yeni Çekim (улучшенный вывод средств) ---------- */
+/* ---------- Вывод средств (3 валюты ₸ / $ / ₺ + добавление и удаление карт/IBAN) ---------- */
+type PayoutCur = 'KZT' | 'USD' | 'TRY'
+interface BankCard { id: string; bank: string; number: string; cur: PayoutCur }
+const CARDS_KEY = 'jj-seller-cards'
+const DEFAULT_CARDS: BankCard[] = [
+  { id: 'c1', bank: 'Test Bank', number: 'TR33 •••• •••• 1326', cur: 'TRY' },
+  { id: 'c2', bank: 'Garanti BBVA', number: 'TR82 •••• •••• 4901', cur: 'USD' },
+]
+const loadCards = (): BankCard[] => {
+  try {
+    const raw = localStorage.getItem(CARDS_KEY)
+    if (raw) {
+      const parsed = JSON.parse(raw)
+      if (Array.isArray(parsed)) return parsed
+    }
+  } catch {}
+  return DEFAULT_CARDS
+}
+const saveCards = (list: BankCard[]) => {
+  try { localStorage.setItem(CARDS_KEY, JSON.stringify(list)) } catch {}
+}
+
+const PAYOUT_RATE: Record<PayoutCur, { sym: string; label: string; divFromKzt: number; decimals: number }> = {
+  KZT: { sym: '₸', label: '₸ KZT', divFromKzt: 1, decimals: 0 },
+  USD: { sym: '$', label: '$ USD', divFromKzt: 500, decimals: 2 },
+  TRY: { sym: '₺', label: '₺ TRY', divFromKzt: 8.89, decimals: 0 },
+}
+
+function AddCardSheet({ onAdd }: { onAdd: (c: BankCard) => void }) {
+  const nav = useNav()
+  const { t } = nav
+  const [bank, setBank] = useState('')
+  const [number, setNumber] = useState('')
+  const [cur, setCur] = useState<PayoutCur>('TRY')
+
+  const maskCard = (raw: string) => {
+    const clean = raw.trim().toUpperCase()
+    if (clean.length <= 8) return clean
+    return `${clean.slice(0, 4)} •••• •••• ${clean.slice(-4)}`
+  }
+
+  const submit = () => {
+    if (!bank.trim() || number.trim().length < 6) return
+    onAdd({ id: 'c' + Date.now(), bank: bank.trim(), number: maskCard(number), cur })
+    nav.sheet(null)
+    nav.toast(t.finance.cardAdded)
+  }
+
+  return (
+    <Sheet title={t.finance.addCardTitle}>
+      <div className="pe-sheet-form">
+        <label className="pe-field-lbl">{t.finance.bankNameLbl}</label>
+        <div className="pe-inp">
+          <Landmark size={16} />
+          <input autoFocus placeholder={t.finance.bankNamePh} value={bank} onChange={(e) => setBank(e.target.value)} />
+        </div>
+        <label className="pe-field-lbl" style={{ marginTop: 10 }}>{t.finance.cardNumLbl}</label>
+        <div className="pe-inp">
+          <CreditCard size={16} />
+          <input placeholder={t.finance.cardNumPh} value={number} onChange={(e) => setNumber(e.target.value)} />
+        </div>
+        <label className="pe-field-lbl" style={{ marginTop: 10 }}>{t.finance.payoutCurrency}</label>
+        <div className="wd-cur-seg" style={{ marginBottom: 14 }}>
+          {(['TRY', 'USD', 'KZT'] as PayoutCur[]).map((c) => (
+            <button key={c} type="button" className={cur === c ? 'on' : ''} onClick={() => setCur(c)}>
+              {PAYOUT_RATE[c].label}
+            </button>
+          ))}
+        </div>
+        <button
+          type="button"
+          className={'btn' + (bank.trim() && number.trim().length >= 6 ? '' : ' dis')}
+          style={{ height: 50, borderRadius: 14 }}
+          onClick={submit}
+        >
+          <Plus size={17} />{t.finance.addCardBtn}
+        </button>
+      </div>
+    </Sheet>
+  )
+}
+
 export function Withdraw() {
   const nav = useNav()
   const { t } = nav
+  const [cur, setCur] = useState<PayoutCur>('TRY')
   const [sum, setSum] = useState('')
-  const [bank, setBank] = useState(true)
-  const presets = [5000, 10000, seller.balance]
+  const [cards, setCards] = useState<BankCard[]>(loadCards)
+  const [selectedId, setSelectedId] = useState<string>(() => loadCards()[0]?.id ?? '')
+
+  const meta = PAYOUT_RATE[cur]
+  const avail = meta.decimals ? Number((seller.balance / meta.divFromKzt).toFixed(2)) : Math.round(seller.balance / meta.divFromKzt)
+  const fmtVal = (v: number) =>
+    meta.decimals
+      ? v.toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+      : fmt(Math.round(v))
+
+  const presets = [
+    { label: '25%', val: meta.decimals ? Number((avail * 0.25).toFixed(2)) : Math.round(avail * 0.25) },
+    { label: '50%', val: meta.decimals ? Number((avail * 0.5).toFixed(2)) : Math.round(avail * 0.5) },
+    { label: `${t.withdrawAll} · ${fmtVal(avail)} ${meta.sym}`, val: avail },
+  ]
+
+  const addCard = (card: BankCard) => {
+    const next = [...cards, card]
+    setCards(next)
+    saveCards(next)
+    setSelectedId(card.id)
+  }
+
+  const removeCard = (id: string) => {
+    const next = cards.filter((c) => c.id !== id)
+    setCards(next)
+    saveCards(next)
+    if (selectedId === id) setSelectedId(next[0]?.id ?? '')
+    nav.toast(t.finance.cardDeleted)
+  }
 
   return (
     <div className="screen pg-soft">
       <TopBar center title={t.finance.withdrawTitle} />
       <div className="scroll">
-        <div className="wd-avail">
-          <span>{t.home.available}</span>
-          <b><T n={seller.balance} /></b>
-        </div>
-
-        <div className="od-card">
-          <div className="lbl" style={{ marginTop: 0 }}>{t.finance.amount}</div>
-          <div className="pf-input big">
-            <input inputMode="decimal" placeholder="0" value={sum} onChange={(e) => setSum(e.target.value.replace(/[^\d.,]/g, ''))} />
-            <span>₸</span>
+        {/* Тёмно-фиолетовая карточка доступного баланса + выбор валюты ₺ / $ / ₸ */}
+        <div className="wd-hero">
+          <div className="wd-hero-top">
+            <span>{t.home.available}</span>
+            <small>{t.finance.rateNote}</small>
           </div>
-          <div className="wd-presets">
-            {presets.map((p) => (
-              <button key={p} className={sum === String(p) ? 'on' : ''} onClick={() => setSum(String(p))}>
-                {p === seller.balance ? `${t.withdrawAll} · ${fmt(p)} ₸` : `${fmt(p)} ₸`}
+          <div className="wd-hero-bal">
+            {fmtVal(avail)}<small>{meta.sym}</small>
+          </div>
+          <div className="wd-cur-seg dark">
+            {(['TRY', 'USD', 'KZT'] as PayoutCur[]).map((c) => (
+              <button
+                key={c}
+                type="button"
+                className={cur === c ? 'on' : ''}
+                onClick={() => { setCur(c); setSum('') }}
+              >
+                {PAYOUT_RATE[c].label}
               </button>
             ))}
           </div>
         </div>
 
+        {/* Сумма вывода */}
         <div className="od-card">
-          <div className="lbl" style={{ marginTop: 0 }}>{t.finance.selectBank}</div>
-          <button className={'fin-bank-opt' + (bank ? ' on' : '')} onClick={() => setBank(!bank)}>
-            <span className="fin-bank-ic"><Landmark size={18} /></span>
-            <div className="fin-bank-info">
-              <b>Test Bank</b>
-              <small>TR33 •••• •••• 1326</small>
-            </div>
-            <span className={'cat-check-dot' + (bank ? ' on' : '')}>{bank && <Check size={11} strokeWidth={3} />}</span>
-          </button>
+          <div className="wd-sec-h">
+            <b>{t.finance.amount}</b>
+            <span>{meta.label}</span>
+          </div>
+          <div className="pf-input big wd-inp">
+            <input
+              inputMode="decimal"
+              placeholder="0"
+              value={sum}
+              onChange={(e) => setSum(e.target.value.replace(/[^\d.,]/g, ''))}
+            />
+            <span>{meta.sym}</span>
+          </div>
+          <div className="wd-presets">
+            {presets.map((p) => (
+              <button key={p.label} type="button" className={sum === String(p.val) ? 'on' : ''} onClick={() => setSum(String(p.val))}>
+                {p.label}
+              </button>
+            ))}
+          </div>
         </div>
 
-        <button className="btn" style={{ marginTop: 8 }} onClick={() => {
-          if (!sum) return nav.toast(t.finance.enterAmount)
-          if (!bank) return nav.toast(t.finance.pickBank)
-          nav.toast(t.finance.reqSent); nav.pop()
-        }}>{t.finance.sendReq}</button>
+        {/* Карты и IBAN: выбор, удаление, добавление */}
+        <div className="od-card">
+          <div className="wd-sec-h">
+            <b>{t.finance.selectBank}</b>
+            <small>{cards.length}</small>
+          </div>
+          {cards.length === 0 ? (
+            <div className="wd-empty">{t.finance.noCards}</div>
+          ) : (
+            <div className="wd-cards">
+              {cards.map((c) => {
+                const on = selectedId === c.id
+                return (
+                  <div key={c.id} className={'wd-card-row' + (on ? ' on' : '')}>
+                    <button type="button" className="wd-card-main" onClick={() => setSelectedId(c.id)}>
+                      <span className="fin-bank-ic"><Landmark size={17} /></span>
+                      <div className="fin-bank-info">
+                        <b>{c.bank}<em>{c.cur}</em></b>
+                        <small>{c.number}</small>
+                      </div>
+                      <span className={'cat-check-dot' + (on ? ' on' : '')}>{on && <Check size={11} strokeWidth={3} />}</span>
+                    </button>
+                    <button
+                      type="button"
+                      className="wd-card-del"
+                      aria-label={t.delete}
+                      onClick={() => removeCard(c.id)}
+                    >
+                      <Trash2 size={15} />
+                    </button>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+          <button type="button" className="wd-add-card" onClick={() => nav.sheet(<AddCardSheet onAdd={addCard} />)}>
+            <Plus size={16} />{t.finance.addCardBtn}
+          </button>
+        </div>
+      </div>
+
+      <div className="bottom-cta">
+        <button
+          className={'btn' + (sum && selectedId ? '' : ' dis')}
+          style={{ height: 52, borderRadius: 14, fontSize: 15.5 }}
+          onClick={() => {
+            if (!sum || Number(sum.replace(',', '.')) <= 0) return nav.toast(t.finance.enterAmount)
+            if (!selectedId) return nav.toast(t.finance.pickBank)
+            nav.toast(`${t.finance.reqSent} · ${sum} ${meta.sym}`)
+            nav.pop()
+          }}
+        >
+          <ArrowUpRight size={18} />{t.finance.sendReq}
+        </button>
       </div>
     </div>
   )
 }
 
-/* ---------- Ürün detayı ---------- */
+/* ---------- Карточка товара (полное 3:4 фото без обрезки головы + минималистичный анимированный дизайн) ---------- */
 export function ProductDetail({ p }: { p: (typeof INITIAL_PRODUCTS)[number] }) {
   const nav = useNav()
   const { t } = nav
-  const vars = p.variantList ?? [{ name: 'Siyah, 37', price: p.price, qty: 5, image: p.image }, { name: 'Siyah, 38', price: p.price, qty: 5, image: p.image }]
+  const [fitMode, setFitMode] = useState<'contain' | 'top'>('contain')
+  const [openVar, setOpenVar] = useState<number | null>(0)
+  const vars = p.variantList ?? [
+    { name: `${t.pf.colorNames['Siyah'] ?? 'Siyah'}, 37`, price: p.price, qty: 5, image: p.image },
+    { name: `${t.pf.colorNames['Siyah'] ?? 'Siyah'}, 38`, price: p.price, qty: 5, image: p.image },
+  ]
+  const tryPrice = Number(p.price.replace(/[^\d]/g, '')) || 0
+  const usdPrice = tryPrice ? (tryPrice / 36).toFixed(1).replace('.', ',') : ''
+
   return (
-    <div className="screen">
-      <TopBar title={<span style={{ fontSize: 17 }}>{t.products.detailTitle}</span>} right={<button className="icon-btn soft" onClick={() => nav.push('productForm', { edit: p })}><Pencil size={16} /></button>} />
-      <div className="scroll" style={{ padding: '0 0 16px' }}>
-        <div style={{ position: 'relative' }}>
-          <img className="gallery" src={p.gallery ?? p.image} alt={p.title} style={{ borderRadius: 0, maxHeight: 300, objectFit: 'cover' }} />
+    <div className="screen pg-soft">
+      <TopBar
+        center
+        title={t.products.detailTitle}
+        right={
+          <button className="icon-btn soft" onClick={() => nav.push('productForm', { edit: p })} aria-label={t.edit}>
+            <Pencil size={16} />
+          </button>
+        }
+      />
+      <div className="scroll" style={{ padding: '0 0 18px' }}>
+        {/* Полноразмерный 3:4 кадр — голова и товар целиком без обрезки */}
+        <div className="pd-stage">
+          <div className="pd-stage-bg" style={{ backgroundImage: `url(${p.gallery ?? p.image})` }} aria-hidden />
+          <img
+            className={'pd-stage-img ' + fitMode}
+            src={p.gallery ?? p.image}
+            alt={p.title}
+          />
+          <span className="pd-stage-pill ok"><CheckCircle2 size={11} />{t.products.active}</span>
+          <button
+            type="button"
+            className="pd-stage-fit"
+            onClick={() => setFitMode((m) => (m === 'contain' ? 'top' : 'contain'))}
+          >
+            {t.products.detailFullPhoto}
+          </button>
         </div>
-        <div style={{ padding: '0 16px' }}>
-          <div style={{ fontSize: 18, fontWeight: 700, margin: '16px 0 12px', display: 'flex', justifyContent: 'space-between' }}>
-            <span>{p.title}</span><span style={{ color: '#ae33ff' }}>{p.price}</span>
-          </div>
-          <span className="meta"><span style={{ background: 'var(--field)', fontSize: 11.5, padding: '6px 10px' }}><Archive size={12} />{p.stock} {t.pieces}</span></span>
-          <div className="h2">{t.pf.steps[3]}</div>
-          {vars.map((v, i) => (
-            <div className="var-card" key={i}>
-              <div className="nm">{v.name}<span className="st-pill green">{t.products.active}</span></div>
-              <div className="m"><span>{v.price}</span><span><Archive size={10} /> {v.qty} {t.pieces}</span></div>
-              <a className="link" onClick={() => nav.toast(t.products.stockHistoryEmpty)} style={{ fontSize: 11, display: 'inline-flex', gap: 4, alignItems: 'center' }}><History size={11} />{t.products.stockHistory}</a>
-              <div><img src={v.image} alt={v.name} /></div>
+
+        <div className="pd-body">
+          {/* Заголовок и цена */}
+          <div className="pd-head-card">
+            <div className="pd-title-row">
+              <h1>{p.title}</h1>
+              <div className="pd-price-col">
+                <b>{p.price}</b>
+                {usdPrice && <small>≈ ${usdPrice}</small>}
+              </div>
             </div>
-          ))}
+            <div className="pd-kpis">
+              <div>
+                <span>{t.products.detailTotalStock}</span>
+                <b><Archive size={13} />{p.stock} {t.pieces}</b>
+              </div>
+              <div>
+                <span>{t.products.detailVariantsCnt}</span>
+                <b><Shapes size={13} />{vars.length}</b>
+              </div>
+              <div>
+                <span>{t.products.detailStatus}</span>
+                <b className="ok">{t.products.active}</b>
+              </div>
+            </div>
+          </div>
+
+          {/* Варианты — минималистичные карточки с плавным раскрытием истории */}
+          <div className="pd-sec-h">
+            <h2>{t.pf.steps[3]}</h2>
+            <span>{vars.length} {t.products.variants}</span>
+          </div>
+
+          <div className="pd-vars">
+            {vars.map((v, i) => {
+              const expanded = openVar === i
+              const pct = Math.min(100, Math.max(18, Math.round((v.qty / 20) * 100)))
+              return (
+                <div className={'pd-var' + (expanded ? ' open' : '')} key={i} style={{ animationDelay: `${i * 45}ms` }}>
+                  <button type="button" className="pd-var-top" onClick={() => setOpenVar(expanded ? null : i)}>
+                    <img src={v.image} alt={v.name} className="pd-var-thumb" />
+                    <div className="pd-var-info">
+                      <div className="pd-var-r1">
+                        <b>{v.name}</b>
+                        <span className="st-pill green">{t.products.active}</span>
+                      </div>
+                      <div className="pd-var-r2">
+                        <span className="pd-var-price">{v.price}</span>
+                        <span className="pd-var-qty"><Archive size={11} />{v.qty} {t.pieces}</span>
+                      </div>
+                      <div className="pd-var-bar"><i style={{ width: `${pct}%` }} /></div>
+                    </div>
+                    <ChevronDown size={16} className={'pd-var-ch' + (expanded ? ' rot' : '')} />
+                  </button>
+                  {expanded && (
+                    <div className="pd-var-extra">
+                      <div className="pd-var-hist">
+                        <History size={13} />
+                        <span>{t.products.stockHistory}: <b>{t.products.stockHistoryEmpty}</b></span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+          </div>
         </div>
       </div>
-      <div className="bottom-cta"><button className="btn" onClick={() => nav.push('productForm', { edit: p })}><Pencil size={15} />{t.edit}</button></div>
+
+      <div className="bottom-cta">
+        <button className="btn" style={{ height: 50, borderRadius: 14 }} onClick={() => nav.push('productForm', { edit: p })}>
+          <Pencil size={16} />{t.edit}
+        </button>
+      </div>
     </div>
   )
 }
@@ -682,6 +942,11 @@ export function Profile() {
             <b>{fmt(seller.balance)} ₸</b>
             <span>{t.profile.statBalance}</span>
           </button>
+        </div>
+
+        {/* Верификация магазина перенесена с Главной сюда в Профиль */}
+        <div style={{ marginBottom: 14 }}>
+          <DocsAlert />
         </div>
 
         <div className="prof-sec">{t.profile.secBusiness}</div>
@@ -1051,7 +1316,7 @@ export function Documents() {
         <div style={{ fontSize: 22, fontWeight: 700, lineHeight: 1.25, marginTop: 6 }}>{t.home.docsTitle}</div>
         <div style={{ fontSize: 13.5, color: 'var(--ink2)', margin: '8px 0 4px' }}>{t.home.docsSub}</div>
         <div style={{ fontSize: 11, color: 'var(--ink3)', marginBottom: 18 }}>JPG, PNG, WEBP, PDF · ≤ 15 MB</div>
-        {['Pasaport / ID', 'Lisans', 'Banka / IBAN'].map((d) => (
+        {t.sub.docsList.map((d) => (
           <div className="doc-row" key={d}>
             <div className="n">{d}</div>
             <label style={{ cursor: 'pointer' }}>
@@ -1068,12 +1333,6 @@ export function Documents() {
 export function BrandDocs() {
   const nav = useNav()
   const { t } = nav
-  const req = [
-    'Satın alma belgeleri: üreticiden fatura, tedarik sözleşmesi, resmi distribütörden irsaliyeler',
-    'Ürünün orijinalliğini ve menşeini kanıtlayan belgeler',
-    'Kazakistan’a ithalat ve satışın yasal olduğunu gösteren belgeler',
-    'Uygunluk ve etiketleme belgeleri',
-  ]
   return (
     <div className="screen">
       <TopBar title={t.profile.brandDocs} />
@@ -1081,8 +1340,8 @@ export function BrandDocs() {
         <div className="info-box">
           <div className="h">{t.profile.brandDocs}</div>
           <ul style={{ padding: 0, margin: '8px 0' }}>
-            {req.map((r) => <li key={r}><CircleCheck size={13} color="var(--p)" style={{ flex: 'none', marginTop: 1 }} />{r}</li>)}
-            <li style={{ color: 'var(--red)' }}><AlertCircle size={13} style={{ flex: 'none', marginTop: 1 }} />Türkiye’deki bir mağazadan alınmış tek bir fiş yeterli değildir.</li>
+            {t.sub.brandDocsReqs.map((r) => <li key={r}><CircleCheck size={13} color="var(--p)" style={{ flex: 'none', marginTop: 1 }} />{r}</li>)}
+            <li style={{ color: 'var(--red)' }}><AlertCircle size={13} style={{ flex: 'none', marginTop: 1 }} />{t.sub.brandDocsWarn}</li>
           </ul>
           <a className="link" onClick={() => nav.push('rules')}>{t.profile.rules}</a>
         </div>
@@ -1098,12 +1357,12 @@ export function Rules() {
     <div className="screen">
       <TopBar title={<span style={{ fontSize: 16, lineHeight: 1.2, display: 'block' }}>{t.profile.rules}</span>} />
       <div className="scroll text">
-        <h3>1. Genel kurallar</h3>
-        <p>Platformda yalnızca orijinal, yasal olarak satılabilen ve açıklamasıyla birebir uyumlu ürünler listelenebilir.</p>
-        <h3>2. Yasaklı ürünler</h3>
-        <p>Silah, ilaç, alkol, tütün ürünleri, sahte belgeler ve Kazakistan mevzuatına göre satışı yasak olan diğer ürünler listelenemez.</p>
-        <h3>3. Belge gerektiren markalar</h3>
-        <p>Bazı markalar yalnızca belge onayıyla satılabilir. Yönetici belgeleri onaylayana kadar bu markadaki ürünler moderasyonda kalır.</p>
+        {t.sub.rulesSections.map((s) => (
+          <div key={s.h}>
+            <h3>{s.h}</h3>
+            <p>{s.p}</p>
+          </div>
+        ))}
       </div>
     </div>
   )
@@ -1128,11 +1387,6 @@ export function Support() {
   )
 }
 
-const FAQS = [
-  ['Platformda nasıl satıcı olunur?', 'JJ Seller uygulamasını indirip kayıt olun, mağaza belgelerinizi yükleyin ve moderasyon onayından sonra ürün eklemeye başlayın.'],
-  ['Sipariş durumu nasıl takip edilir?', '«Siparişler» bölümünde her siparişin güncel durumunu ve geçmişini görebilirsiniz.'],
-  ['Uygun beden nasıl seçilir?', 'Ürün kartına beden tablosu ve kalıp bilgisini ekleyin — TR / RU / INT sistemleri otomatik eşleşir.'],
-]
 export function Faq() {
   const nav = useNav()
   const { t } = nav
@@ -1141,7 +1395,7 @@ export function Faq() {
     <div className="screen">
       <TopBar title={t.profile.faq} />
       <div className="scroll">
-        {FAQS.map(([q, a], i) => (
+        {t.sub.faqs.map(([q, a], i) => (
           <div className="faq" key={i}>
             <button onClick={() => setOpen(open === i ? null : i)}>{q}{open === i ? <ChevronUp size={16} /> : <ChevronDown size={16} />}</button>
             {open === i && <p>{a}</p>}
@@ -1155,7 +1409,6 @@ export function Faq() {
   )
 }
 
-const DOCS = ['Gizlilik politikası', 'İade Politikası', 'Kişisel Verilerin Korunması', 'Ödeme ve iade', 'Teslimat', 'Üyelik sözleşmesi', 'Публичная оферта JJ Market']
 export function Agreements() {
   const nav = useNav()
   const { t } = nav
@@ -1163,7 +1416,7 @@ export function Agreements() {
     <div className="screen">
       <TopBar title={t.profile.agreements} />
       <div className="scroll">
-        {DOCS.map((d) => (
+        {t.sub.agreements.map((d) => (
           <button key={d} className="menu-item" onClick={() => nav.push('agreement', d)}>
             <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{d}</span>
             <ChevronRight size={18} style={{ flex: 'none' }} />
@@ -1175,13 +1428,13 @@ export function Agreements() {
 }
 
 export function AgreementText({ title }: { title: string }) {
+  const { t } = useNav()
   return (
     <div className="screen">
       <TopBar title={<span style={{ fontSize: 17 }}>{title}</span>} />
       <div className="scroll text">
-        <h3>GİZLİLİK POLİTİKASI</h3>
-        <p>İşbu Gizlilik Politikası, JJ Market mobil uygulamasını kullanan kişilerin kişisel verilerinin toplanması ve işlenmesine ilişkin esasları belirler.</p>
-        <p><b>1. Kişisel Veri Sorumlusu</b><br />Şirket Unvanı: “АСХАТ-ЖЖ” Limited Şirketi (ТОО)</p>
+        <h3>{t.sub.agreementHeading}</h3>
+        <p>{t.sub.agreementBody}</p>
       </div>
     </div>
   )
