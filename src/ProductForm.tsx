@@ -12,7 +12,7 @@ import { SIZE_TABLES, SYS_LABEL, tableForCategory, systemsOf, equivalents, RATE_
 
 type Cur = 'TRY' | 'USD'
 type BoxUnit = 'cm' | 'mm'
-type CropRatio = '3:4' | '1:1' | 'fit'
+type CropRatio = 'free' | '3:4' | '1:1' | 'fit'
 const STEP_ICONS = [LayoutGrid, Camera, Type, Palette, Wallet, Eye] as const
 const STEP_KEYS = ['cat', 'photo', 'info', 'var', 'price', 'prev'] as const
 
@@ -160,7 +160,8 @@ function PhotoSourceSheet({ onFiles, onDemo }: { onFiles: (f: FileList) => void;
   )
 }
 
-/* ---------- Интерактивный редактор обрезки и кадрирования фото (3:4 / 1:1 / Вместить всё) ---------- */
+/* ---------- Интерактивный редактор обрезки и кадрирования фото (Свободно / 3:4 / 1:1 / Всё фото) ---------- */
+type FreeHandle = 'move' | 'nw' | 'ne' | 'sw' | 'se' | 'n' | 's' | 'w' | 'e'
 function PhotoCropSheet({
   src, onApply,
 }: {
@@ -168,14 +169,24 @@ function PhotoCropSheet({
 }) {
   const nav = useNav()
   const pf = nav.t.pf
-  const [ratio, setRatio] = useState<CropRatio>('3:4')
+  const [ratio, setRatio] = useState<CropRatio>('free')
   const [zoom, setZoom] = useState(1)
   const [rot, setRot] = useState(0)
   const [pan, setPan] = useState({ x: 0, y: 0 })
+  // Свободная рамка в % от области предпросмотра (0..100)
+  const [box, setBox] = useState({ x: 10, y: 8, w: 80, h: 84 })
+  const stageRef = useRef<HTMLDivElement>(null)
   const imgRef = useRef<HTMLImageElement>(null)
   const dragRef = useRef<{ x: number; y: number; px: number; py: number } | null>(null)
+  const freeDragRef = useRef<{
+    handle: FreeHandle
+    sx: number
+    sy: number
+    start: { x: number; y: number; w: number; h: number }
+  } | null>(null)
 
   const onDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (ratio === 'free') return
     dragRef.current = { x: e.clientX, y: e.clientY, px: pan.x, py: pan.y }
     try { e.currentTarget.setPointerCapture(e.pointerId) } catch {}
   }
@@ -189,6 +200,48 @@ function PhotoCropSheet({
   }
   const onUp = () => { dragRef.current = null }
 
+  const onFreeDown = (handle: FreeHandle, e: React.PointerEvent) => {
+    e.stopPropagation()
+    freeDragRef.current = { handle, sx: e.clientX, sy: e.clientY, start: { ...box } }
+    try { (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId) } catch {}
+  }
+  const onFreeMove = (e: React.PointerEvent) => {
+    const st = freeDragRef.current
+    const el = stageRef.current
+    if (!st || !el) return
+    e.stopPropagation()
+    const rect = el.getBoundingClientRect()
+    const dx = ((e.clientX - st.sx) / rect.width) * 100
+    const dy = ((e.clientY - st.sy) / rect.height) * 100
+    const s = st.start
+    const MIN = 18
+    let { x, y, w, h } = s
+
+    if (st.handle === 'move') {
+      x = Math.max(0, Math.min(100 - s.w, s.x + dx))
+      y = Math.max(0, Math.min(100 - s.h, s.y + dy))
+    } else {
+      if (st.handle.includes('w')) {
+        const nx = Math.max(0, Math.min(s.x + s.w - MIN, s.x + dx))
+        w = s.x + s.w - nx
+        x = nx
+      }
+      if (st.handle.includes('e')) {
+        w = Math.max(MIN, Math.min(100 - s.x, s.w + dx))
+      }
+      if (st.handle.includes('n')) {
+        const ny = Math.max(0, Math.min(s.y + s.h - MIN, s.y + dy))
+        h = s.y + s.h - ny
+        y = ny
+      }
+      if (st.handle.includes('s')) {
+        h = Math.max(MIN, Math.min(100 - s.y, s.h + dy))
+      }
+    }
+    setBox({ x, y, w, h })
+  }
+  const onFreeUp = () => { freeDragRef.current = null }
+
   const applyCrop = () => {
     const el = imgRef.current
     if (!el || !el.naturalWidth) {
@@ -198,31 +251,64 @@ function PhotoCropSheet({
       return
     }
     try {
-      const outW = ratio === '1:1' ? 720 : 600
-      const outH = ratio === '1:1' ? 720 : 800
-      const canvas = document.createElement('canvas')
-      canvas.width = outW
-      canvas.height = outH
-      const ctx = canvas.getContext('2d')
-      if (!ctx) throw new Error('no ctx')
-      ctx.fillStyle = '#f4f2f8'
-      ctx.fillRect(0, 0, outW, outH)
-
       const nw = el.naturalWidth
       const nh = el.naturalHeight
-      const scaleCover = Math.max(outW / nw, outH / nh)
-      const scaleContain = Math.min(outW / nw, outH / nh)
-      const baseScale = ratio === 'fit' ? scaleContain : scaleCover
-      const finalScale = baseScale * zoom
 
-      ctx.save()
-      ctx.translate(outW / 2 + pan.x * (outW / 240), outH / 2 + pan.y * (outH / 320))
-      ctx.rotate((rot * Math.PI) / 180)
-      ctx.drawImage(el, (-nw * finalScale) / 2, (-nh * finalScale) / 2, nw * finalScale, nh * finalScale)
-      ctx.restore()
+      if (ratio === 'free') {
+        // Сначала рисуем повернутое изображение на промежуточный холст, затем вырезаем точную область рамки
+        const baseW = 720
+        const baseH = 720
+        const tmp = document.createElement('canvas')
+        tmp.width = baseW
+        tmp.height = baseH
+        const tctx = tmp.getContext('2d')
+        if (!tctx) throw new Error('no ctx')
+        tctx.fillStyle = '#f4f2f8'
+        tctx.fillRect(0, 0, baseW, baseH)
 
-      const dataUrl = canvas.toDataURL('image/jpeg', 0.9)
-      onApply(dataUrl)
+        const scaleContain = Math.min(baseW / nw, baseH / nh) * zoom
+        tctx.save()
+        tctx.translate(baseW / 2, baseH / 2)
+        tctx.rotate((rot * Math.PI) / 180)
+        tctx.drawImage(el, (-nw * scaleContain) / 2, (-nh * scaleContain) / 2, nw * scaleContain, nh * scaleContain)
+        tctx.restore()
+
+        const sx = Math.round((box.x / 100) * baseW)
+        const sy = Math.round((box.y / 100) * baseH)
+        const sw = Math.max(60, Math.round((box.w / 100) * baseW))
+        const sh = Math.max(60, Math.round((box.h / 100) * baseH))
+
+        const out = document.createElement('canvas')
+        out.width = sw
+        out.height = sh
+        const octx = out.getContext('2d')
+        if (!octx) throw new Error('no ctx')
+        octx.drawImage(tmp, sx, sy, sw, sh, 0, 0, sw, sh)
+        onApply(out.toDataURL('image/jpeg', 0.92))
+      } else {
+        const outW = ratio === '1:1' ? 720 : 600
+        const outH = ratio === '1:1' ? 720 : 800
+        const canvas = document.createElement('canvas')
+        canvas.width = outW
+        canvas.height = outH
+        const ctx = canvas.getContext('2d')
+        if (!ctx) throw new Error('no ctx')
+        ctx.fillStyle = '#f4f2f8'
+        ctx.fillRect(0, 0, outW, outH)
+
+        const scaleCover = Math.max(outW / nw, outH / nh)
+        const scaleContain = Math.min(outW / nw, outH / nh)
+        const baseScale = ratio === 'fit' ? scaleContain : scaleCover
+        const finalScale = baseScale * zoom
+
+        ctx.save()
+        ctx.translate(outW / 2 + pan.x * (outW / 240), outH / 2 + pan.y * (outH / 320))
+        ctx.rotate((rot * Math.PI) / 180)
+        ctx.drawImage(el, (-nw * finalScale) / 2, (-nh * finalScale) / 2, nw * finalScale, nh * finalScale)
+        ctx.restore()
+
+        onApply(canvas.toDataURL('image/jpeg', 0.9))
+      }
     } catch {
       onApply(src)
     }
@@ -230,14 +316,24 @@ function PhotoCropSheet({
     nav.toast(pf.cropSaved)
   }
 
+  const badgeText =
+    ratio === 'free'
+      ? `${pf.cropRatioFree} · ${Math.round(box.w)}% × ${Math.round(box.h)}%`
+      : ratio === '1:1'
+        ? `${pf.cropRatio11}`
+        : ratio === 'fit'
+          ? pf.cropFitFull
+          : pf.cropSafeZone
+
   return (
     <Sheet title={pf.cropTitle}>
       <div className="cr-wrap">
-        <p className="cr-sub">{pf.cropSub}</p>
+        <p className="cr-sub">{ratio === 'free' ? pf.cropFreeHint : pf.cropSub}</p>
 
-        {/* Интерактивный кадр с сеткой третей */}
+        {/* Интерактивный кадр: в режиме «Свободно» — перетаскиваемая рамка с 8 ручками */}
         <div
-          className={'cr-stage ' + (ratio === '1:1' ? 'sq' : 'p34')}
+          ref={stageRef}
+          className={'cr-stage ' + (ratio === '1:1' || ratio === 'free' ? 'sq' : 'p34') + (ratio === 'free' ? ' free' : '')}
           onPointerDown={onDown}
           onPointerMove={onMove}
           onPointerUp={onUp}
@@ -248,18 +344,53 @@ function PhotoCropSheet({
             src={src}
             alt="Crop preview"
             draggable={false}
-            className={ratio === 'fit' ? 'fit' : 'cover'}
-            style={{ transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom}) rotate(${rot}deg)` }}
+            className={ratio === 'fit' || ratio === 'free' ? 'fit' : 'cover'}
+            style={{
+              transform:
+                ratio === 'free'
+                  ? `scale(${zoom}) rotate(${rot}deg)`
+                  : `translate(${pan.x}px, ${pan.y}px) scale(${zoom}) rotate(${rot}deg)`,
+            }}
           />
-          <div className="cr-grid" aria-hidden>
-            <i className="v1" /><i className="v2" /><i className="h1" /><i className="h2" />
-          </div>
-          <span className="cr-safe">{pf.cropSafeZone}</span>
+
+          {ratio === 'free' ? (
+            <>
+              <div
+                className="cr-free-box"
+                style={{ left: `${box.x}%`, top: `${box.y}%`, width: `${box.w}%`, height: `${box.h}%` }}
+                onPointerDown={(e) => onFreeDown('move', e)}
+                onPointerMove={onFreeMove}
+                onPointerUp={onFreeUp}
+                onPointerCancel={onFreeUp}
+              >
+                <div className="cr-grid" aria-hidden>
+                  <i className="v1" /><i className="v2" /><i className="h1" /><i className="h2" />
+                </div>
+                {(['nw', 'ne', 'sw', 'se', 'n', 's', 'w', 'e'] as FreeHandle[]).map((h) => (
+                  <span
+                    key={h}
+                    className={'cr-h ' + h}
+                    onPointerDown={(e) => onFreeDown(h, e)}
+                    onPointerMove={onFreeMove}
+                    onPointerUp={onFreeUp}
+                    onPointerCancel={onFreeUp}
+                  />
+                ))}
+              </div>
+            </>
+          ) : (
+            <div className="cr-grid" aria-hidden>
+              <i className="v1" /><i className="v2" /><i className="h1" /><i className="h2" />
+            </div>
+          )}
+
+          <span className="cr-safe">{badgeText}</span>
         </div>
 
-        {/* Режимы пропорций */}
-        <div className="cr-ratios">
+        {/* 4 режима: Свободно / 3:4 / 1:1 / Всё фото */}
+        <div className="cr-ratios four">
           {([
+            ['free', pf.cropRatioFree],
             ['3:4', pf.cropRatio34],
             ['1:1', pf.cropRatio11],
             ['fit', pf.cropFitFull],
@@ -268,7 +399,12 @@ function PhotoCropSheet({
               key={k}
               type="button"
               className={ratio === k ? 'on' : ''}
-              onClick={() => { setRatio(k); setPan({ x: 0, y: 0 }); setZoom(1) }}
+              onClick={() => {
+                setRatio(k)
+                setPan({ x: 0, y: 0 })
+                setZoom(1)
+                if (k === 'free') setBox({ x: 10, y: 8, w: 80, h: 84 })
+              }}
             >
               {l}
             </button>
@@ -290,7 +426,19 @@ function PhotoCropSheet({
         </div>
 
         <div className="cr-acts">
-          <button type="button" className="cr-mini" onClick={() => { setRatio('3:4'); setZoom(1.05); setPan({ x: 0, y: 26 }) }}>
+          <button
+            type="button"
+            className="cr-mini"
+            onClick={() => {
+              if (ratio === 'free') {
+                setBox({ x: 14, y: 2, w: 72, h: 68 })
+              } else {
+                setRatio('3:4')
+                setZoom(1.05)
+                setPan({ x: 0, y: 26 })
+              }
+            }}
+          >
             <SlidersHorizontal size={14} />{pf.cropTopFocus}
           </button>
           <button type="button" className="cr-mini" onClick={() => setRot((r) => (r + 90) % 360)}>

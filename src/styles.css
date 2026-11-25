@@ -2571,6 +2571,44 @@ input, textarea { outline: none; }
 .cr-ratios {
   width: 100%; display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 12px;
 }
+.cr-ratios.four { grid-template-columns: repeat(4, 1fr); }
+.cr-stage.free { width: 256px; border-color: rgba(174, 51, 255, .45); cursor: default; }
+.cr-free-box {
+  position: absolute; z-index: 2; border: 2px solid #fff;
+  box-shadow: 0 0 0 9999px rgba(14, 10, 22, .62), inset 0 0 0 1px rgba(174, 51, 255, .8);
+  cursor: move; touch-action: none;
+}
+.cr-h {
+  position: absolute; z-index: 4; touch-action: none;
+}
+.cr-h.nw, .cr-h.ne, .cr-h.sw, .cr-h.se {
+  width: 22px; height: 22px;
+}
+.cr-h.nw { top: -8px; left: -8px; cursor: nwse-resize; }
+.cr-h.ne { top: -8px; right: -8px; cursor: nesw-resize; }
+.cr-h.sw { bottom: -8px; left: -8px; cursor: nesw-resize; }
+.cr-h.se { bottom: -8px; right: -8px; cursor: nwse-resize; }
+.cr-h.nw::after, .cr-h.ne::after, .cr-h.sw::after, .cr-h.se::after {
+  content: ''; position: absolute; width: 13px; height: 13px; border: 3px solid #dea2ff;
+}
+.cr-h.nw::after { top: 5px; left: 5px; border-right: 0; border-bottom: 0; border-top-left-radius: 3px; }
+.cr-h.ne::after { top: 5px; right: 5px; border-left: 0; border-bottom: 0; border-top-right-radius: 3px; }
+.cr-h.sw::after { bottom: 5px; left: 5px; border-right: 0; border-top: 0; border-bottom-left-radius: 3px; }
+.cr-h.se::after { bottom: 5px; right: 5px; border-left: 0; border-top: 0; border-bottom-right-radius: 3px; }
+.cr-h.n, .cr-h.s { left: 22px; right: 22px; height: 14px; cursor: ns-resize; }
+.cr-h.n { top: -7px; }
+.cr-h.s { bottom: -7px; }
+.cr-h.w, .cr-h.e { top: 22px; bottom: 22px; width: 14px; cursor: ew-resize; }
+.cr-h.w { left: -7px; }
+.cr-h.e { right: -7px; }
+.cr-h.n::after, .cr-h.s::after {
+  content: ''; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+  width: 24px; height: 3px; border-radius: 3px; background: #fff;
+}
+.cr-h.w::after, .cr-h.e::after {
+  content: ''; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+  width: 3px; height: 24px; border-radius: 3px; background: #fff;
+}
 .cr-ratios button {
   height: 36px; border-radius: 10px; background: #f3f1f8; color: #524e60; font-size: 12px; font-weight: 700;
 }

@@ -319,7 +319,9 @@ export interface Dict {
     cropSub: string
     cropRatio34: string
     cropRatio11: string
+    cropRatioFree: string
     cropFitFull: string
+    cropFreeHint: string
     cropTopFocus: string
     cropZoom: string
     cropRotate: string
@@ -827,9 +829,11 @@ const TR: Dict = {
     cropBtn: 'Kırp / Hizala',
     cropTitle: 'Fotoğrafı kırp ve hizala',
     cropSub: 'Fotoğrafı sürükleyin — baş ve ürün tamamen çerçevede kalsın',
-    cropRatio34: '3:4 Vitrin',
-    cropRatio11: '1:1 Kare',
-    cropFitFull: 'Tam sığdır',
+    cropRatio34: '3:4',
+    cropRatio11: '1:1',
+    cropRatioFree: 'Serbest',
+    cropFitFull: 'Sığdır',
+    cropFreeHint: 'Köşelerden veya kenarlardan tutup istediğiniz gibi kırpın',
     cropTopFocus: 'Üst (yüz)',
     cropZoom: 'Yakınlaştır',
     cropRotate: 'Döndür',
@@ -1276,9 +1280,11 @@ const RU: Dict = {
     cropBtn: 'Обрезать / Кадр',
     cropTitle: 'Обрезка и кадрирование',
     cropSub: 'Подвиньте фото пальцем, чтобы модель и товар целиком поместились в рамку',
-    cropRatio34: '3:4 Витрина',
-    cropRatio11: '1:1 Квадрат',
-    cropFitFull: 'Вместить всё',
+    cropRatio34: '3:4',
+    cropRatio11: '1:1',
+    cropRatioFree: 'Свободно',
+    cropFitFull: 'Всё фото',
+    cropFreeHint: 'Тяните за углы, края или саму рамку для свободной обрезки',
     cropTopFocus: 'Верх (лицо)',
     cropZoom: 'Масштаб',
     cropRotate: 'Повернуть',
