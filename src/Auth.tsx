@@ -886,84 +886,94 @@ function Login({
         </div>
       </div>
 
-      {/* Светлый лист: «Новый продавец» НАВЕРХУ (заметно и понятно!), Google/Apple ВНИЗУ */}
+      {/* Светлый лист v6: ювелирная карточка «Новый продавец», приподнятая форма входа и Google/Apple внизу */}
       <div className="au2-sheet login">
         <div className="au2-sheet-main">
-          {/* Заметная анимированная карточка «Новый продавец» НАВЕРХУ */}
+          {/* Карточка «Новый продавец» — чистая, контрастная, с живым бликом */}
           <button type="button" className="au3-new-banner" onClick={onRegister}>
             <span className="au3-nb-shine" />
-            <span className="au3-nb-ic"><Store size={17} /></span>
+            <span className="au3-nb-ic"><Store size={19} /></span>
             <div className="au3-nb-copy">
               <span className="au3-nb-badge"><Sparkles size={10} />{tx.newSellerBadge}</span>
               <b>{tx.newSellerTitle}</b>
               <small>{tx.newSellerSub}</small>
             </div>
-            <span className="au3-nb-go">{tx.regBtn}<ArrowRight size={13} /></span>
+            <span className="au3-nb-go">{tx.regBtn}<ArrowRight size={14} /></span>
           </button>
 
-          <Seg value={mode} items={[`${tx.phone} +90`, tx.mail]} onChange={(i) => { setMode(i); setId(''); setErr(false) }} />
+          {/* Приподнятая белая карточка формы входа */}
+          <div className="au4-form-card">
+            <Seg value={mode} items={[`${tx.phone} +90`, tx.mail]} onChange={(i) => { setMode(i); setId(''); setErr(false) }} />
 
-          <form onSubmit={(e) => { e.preventDefault(); submit() }}>
-            <Field label={mode === 0 ? tx.phoneLbl : tx.mailLbl}>
-              {mode === 0 ? (
-                <Inp err={err} icon={<TrPrefix />}>
-                  <input
-                    inputMode={isAdmin || /[a-z]/i.test(id) ? 'text' : 'tel'}
-                    placeholder="5XX XXX XX XX"
-                    value={id}
-                    onChange={(e) => {
-                      const v = e.target.value
-                      setErr(false)
-                      setId(/[a-z]/i.test(v) ? v.slice(0, 5) : maskPhone(v))
-                    }}
-                    autoComplete="tel"
-                  />
-                </Inp>
-              ) : (
-                <Inp err={err} icon={<Mail size={16} />}>
-                  <input
-                    type="text"
-                    inputMode="email"
-                    placeholder="seller@mail.com"
-                    value={id}
-                    onChange={(e) => { setErr(false); setId(e.target.value) }}
-                    autoComplete="username"
-                  />
-                </Inp>
-              )}
-            </Field>
+            <form onSubmit={(e) => { e.preventDefault(); submit() }}>
+              <Field label={mode === 0 ? tx.phoneLbl : tx.mailLbl}>
+                {mode === 0 ? (
+                  <Inp err={err} icon={<TrPrefix />}>
+                    <input
+                      inputMode={isAdmin || /[a-z]/i.test(id) ? 'text' : 'tel'}
+                      placeholder="5XX XXX XX XX"
+                      value={id}
+                      onChange={(e) => {
+                        const v = e.target.value
+                        setErr(false)
+                        setId(/[a-z]/i.test(v) ? v.slice(0, 5) : maskPhone(v))
+                      }}
+                      autoComplete="tel"
+                    />
+                  </Inp>
+                ) : (
+                  <Inp err={err} icon={<Mail size={16} />}>
+                    <input
+                      type="text"
+                      inputMode="email"
+                      placeholder="seller@mail.com"
+                      value={id}
+                      onChange={(e) => { setErr(false); setId(e.target.value) }}
+                      autoComplete="username"
+                    />
+                  </Inp>
+                )}
+              </Field>
 
-            <Field
-              label={tx.pass}
-              right={
-                <button type="button" className="au2-link" onClick={() => nav.sheet(<ForgotSheet tx={tx} />)}>
-                  {tx.forgot}
-                </button>
-              }
-            >
-              <Pass value={pass} onChange={(v) => { setErr(false); setPass(v) }} placeholder={tx.passPh} err={err} tx={tx} />
-            </Field>
+              <Field
+                label={tx.pass}
+                right={
+                  <button type="button" className="au2-link" onClick={() => nav.sheet(<ForgotSheet tx={tx} />)}>
+                    {tx.forgot}
+                  </button>
+                }
+              >
+                <Pass value={pass} onChange={(v) => { setErr(false); setPass(v) }} placeholder={tx.passPh} err={err} tx={tx} />
+              </Field>
 
-            {err && <div className="au-err"><CircleAlert size={13} />{tx.bad}</div>}
+              {err && <div className="au-err"><CircleAlert size={13} />{tx.bad}</div>}
 
-            <button className={'au2-btn' + (ready ? ' shine' : ' dis')} type="submit">
-              {busy === 'login' ? <Loader2 size={19} className="au-spin" /> : tx.login}
-            </button>
-          </form>
-
-          <div className="au2-quick">
-            {mode === 0 && (
-              <button type="button" className="au2-pill-btn" disabled={!phoneOk} onClick={() => onSms('+90 ' + id)}>
-                <Phone size={13} />{tx.sms}
+              <button className={'au2-btn' + (ready ? ' shine' : ' dis')} type="submit">
+                {busy === 'login' ? (
+                  <Loader2 size={19} className="au-spin" />
+                ) : (
+                  <>
+                    <span>{tx.login}</span>
+                    <ArrowRight size={16} />
+                  </>
+                )}
               </button>
-            )}
-            <button type="button" className="au2-pill-btn demo" onClick={fillDemo}>
-              <Sparkles size={13} />{tx.demoFill}
-            </button>
+            </form>
+
+            <div className={'au4-quick' + (mode === 0 ? '' : ' single')}>
+              {mode === 0 && (
+                <button type="button" className="au4-qbtn" disabled={!phoneOk} onClick={() => onSms('+90 ' + id)}>
+                  <Phone size={14} /><span>{tx.sms}</span>
+                </button>
+              )}
+              <button type="button" className="au4-qbtn demo" onClick={fillDemo}>
+                <Sparkles size={14} /><span>{tx.demoFill}</span>
+              </button>
+            </div>
           </div>
         </div>
 
-        {/* Google & Apple опущены в самый низ */}
+        {/* Google & Apple аккуратно внизу без пустого разрыва */}
         <div className="au2-sheet-foot">
           <div className="au2-or"><span>{tx.or}</span></div>
           <div className="au2-social-grid" style={{ marginBottom: 4 }}>
