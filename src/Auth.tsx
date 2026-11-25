@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import {
-  Eye, EyeOff, ChevronLeft, Phone, Mail, Store, User, Lock, Check, ShieldCheck, KeyRound,
+  Eye, EyeOff, ChevronLeft, Phone, Mail, Store, User, UserPlus, Lock, Check, ShieldCheck, KeyRound,
   Sparkles, CircleAlert, Loader2, ArrowRight, PlayCircle, ChevronDown,
   MapPin, CheckCircle2, Wallet, TrendingUp, Globe2, Package,
 } from 'lucide-react'
@@ -89,8 +89,8 @@ const TX = {
     google: 'Google',
     apple: 'Apple',
     newSellerBadge: 'Новый продавец',
-    newSellerTitle: 'Откройте свой магазин',
-    newSellerSub: 'Регистрация за 1 минуту · Бесплатно',
+    newSellerTitle: 'Регистрация',
+    newSellerSub: 'Открыть магазин бесплатно',
     regBtn: 'Начать',
     hasAcc: 'Уже есть аккаунт?',
     // Register live hero
@@ -222,8 +222,8 @@ const TX = {
     google: 'Google',
     apple: 'Apple',
     newSellerBadge: 'Yeni satıcı',
-    newSellerTitle: 'Mağazanızı hemen açın',
-    newSellerSub: '1 dakikada ücretsiz kayıt',
+    newSellerTitle: 'Kayıt Ol',
+    newSellerSub: 'Ücretsiz mağaza açın',
     regBtn: 'Başla',
     hasAcc: 'Zaten hesabınız var mı?',
     // Register live hero
@@ -355,8 +355,8 @@ const TX = {
     google: 'Google',
     apple: 'Apple',
     newSellerBadge: 'Жаңа сатушы',
-    newSellerTitle: 'Өз дүкеніңізді ашыңыз',
-    newSellerSub: '1 минутта тегін тіркелу',
+    newSellerTitle: 'Тіркелу',
+    newSellerSub: 'Тегін дүкен ашу',
     regBtn: 'Бастау',
     hasAcc: 'Аккаунтыңыз бар ма?',
     // Register live hero
@@ -889,16 +889,18 @@ function Login({
       {/* Светлый лист v6: ювелирная карточка «Новый продавец», приподнятая форма входа и Google/Apple внизу */}
       <div className="au2-sheet login">
         <div className="au2-sheet-main">
-          {/* Карточка «Новый продавец» — чистая, контрастная, с живым бликом */}
+          {/* Карточка «Регистрация» — широкая, лаконичная, без AI-звёздочек */}
           <button type="button" className="au3-new-banner" onClick={onRegister}>
             <span className="au3-nb-shine" />
-            <span className="au3-nb-ic"><Store size={19} /></span>
+            <span className="au3-nb-ic"><UserPlus size={20} strokeWidth={2.2} /></span>
             <div className="au3-nb-copy">
-              <span className="au3-nb-badge"><Sparkles size={10} />{tx.newSellerBadge}</span>
-              <b>{tx.newSellerTitle}</b>
+              <div className="au3-nb-row">
+                <b>{tx.newSellerTitle}</b>
+                <span className="au3-nb-badge"><i />{tx.newSellerBadge}</span>
+              </div>
               <small>{tx.newSellerSub}</small>
             </div>
-            <span className="au3-nb-go">{tx.regBtn}<ArrowRight size={14} /></span>
+            <span className="au3-nb-go" aria-hidden><ArrowRight size={17} strokeWidth={2.5} /></span>
           </button>
 
           {/* Приподнятая белая карточка формы входа */}

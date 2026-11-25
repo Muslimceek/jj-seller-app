@@ -2018,13 +2018,13 @@ input, textarea { outline: none; }
 .au3-mc-dots span.on i { animation: auHookFill 3.6s linear forwards; }
 @keyframes auHookFill { from { width: 0; } to { width: 100%; } }
 
-/* Заметная анимированная карточка «Новый продавец» НАВЕРХУ листа входа (v6 — премиальная контрастная) */
+/* Карточка «Регистрация» НАВЕРХУ листа входа — широкая, чистая, лаконичная */
 .au3-new-banner {
-  position: relative; overflow: hidden; width: 100%; display: flex; align-items: center; gap: 10px; text-align: left;
-  padding: 10px 12px; border-radius: 17px; margin-bottom: 10px;
-  background: linear-gradient(135deg, #ffffff 0%, #faf5ff 60%, #f3e6ff 100%);
-  border: 1.5px solid rgba(174, 51, 255, .26);
-  box-shadow: 0 8px 22px rgba(130, 42, 210, .1), inset 0 1px 0 rgba(255, 255, 255, .95);
+  position: relative; overflow: hidden; width: 100%; display: flex; align-items: center; gap: 12px; text-align: left;
+  padding: 12px 14px; border-radius: 18px; margin-bottom: 11px;
+  background: linear-gradient(135deg, #ffffff 0%, #faf5ff 58%, #f2e4ff 100%);
+  border: 1.5px solid rgba(174, 51, 255, .28);
+  box-shadow: 0 8px 22px rgba(130, 42, 210, .11), inset 0 1px 0 rgba(255, 255, 255, .96);
   transition: transform .14s, box-shadow .2s;
 }
 .au3-new-banner:active { transform: scale(.985); }
@@ -2034,23 +2034,28 @@ input, textarea { outline: none; }
   transform: translateX(-120%); animation: auShine 3.6s ease-in-out infinite;
 }
 .au3-nb-ic {
-  width: 40px; height: 40px; border-radius: 13px; flex: none;
+  width: 44px; height: 44px; border-radius: 14px; flex: none;
   background: linear-gradient(145deg, #c764ff 0%, #9b24f0 55%, #7513c9 100%); color: #fff;
   display: grid; place-items: center;
-  box-shadow: 0 6px 14px rgba(155, 36, 240, .36), inset 0 1px 1px rgba(255, 255, 255, .35);
+  box-shadow: 0 6px 16px rgba(155, 36, 240, .38), inset 0 1px 1px rgba(255, 255, 255, .38);
 }
-.au3-nb-copy { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.au3-nb-copy { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.au3-nb-row { display: flex; align-items: center; gap: 7px; flex-wrap: nowrap; min-width: 0; }
+.au3-nb-row b { font-size: 16px; font-weight: 800; color: #16131c; letter-spacing: -.3px; line-height: 1.15; }
 .au3-nb-badge {
-  display: inline-flex; align-items: center; gap: 4px; width: fit-content;
-  font-size: 9.5px; font-weight: 800; color: #8b22d9; background: #f2e2ff;
-  padding: 2px 7px; border-radius: 999px; text-transform: uppercase; letter-spacing: .35px;
+  display: inline-flex; align-items: center; gap: 4px; flex: none;
+  font-size: 10px; font-weight: 700; color: #7e22ce; background: #efe0ff;
+  padding: 3px 8px; border-radius: 999px; letter-spacing: .1px;
 }
-.au3-nb-copy b { font-size: 14px; font-weight: 800; color: #16131c; letter-spacing: -.2px; }
-.au3-nb-copy small { font-size: 11px; color: #6c617d; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.au3-nb-badge i {
+  width: 5px; height: 5px; border-radius: 50%; background: #a229f5;
+  box-shadow: 0 0 5px rgba(162, 41, 245, .6);
+}
+.au3-nb-copy small { font-size: 12.5px; color: #685e7a; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .au3-nb-go {
-  flex: none; display: inline-flex; align-items: center; gap: 4px;
+  flex: none; width: 38px; height: 38px; border-radius: 12px;
+  display: grid; place-items: center;
   background: linear-gradient(135deg, #ba4fff, #8c1ee6); color: #fff;
-  font-size: 12px; font-weight: 800; padding: 8px 11px; border-radius: 11px;
   box-shadow: 0 6px 14px rgba(154, 38, 238, .32);
 }
 
