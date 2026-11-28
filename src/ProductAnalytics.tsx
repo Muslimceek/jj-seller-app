@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Star, TrendingUp, Eye, ShoppingCart, PackageCheck, MapPin, Ruler, Archive } from 'lucide-react'
-import { fmt, periods, type Period, type PopularProduct } from './data'
+import { fmt, periods, locTitle, locCity, type Period, type PopularProduct } from './data'
 import { TopBar, useNav } from './ui'
 
 const MULT: Record<Period, number> = {
@@ -11,7 +11,7 @@ const MULT: Record<Period, number> = {
 }
 
 export function ProductAnalytics({ item, rank }: { item: PopularProduct; rank: number }) {
-  const { t } = useNav()
+  const { t, lang } = useNav()
   const [period, setPeriod] = useState<Period>('Hafta')
   const [selBar, setSelBar] = useState<number | null>(null)
 
@@ -34,11 +34,11 @@ export function ProductAnalytics({ item, rank }: { item: PopularProduct; rank: n
       <div className="scroll">
         {/* Product hero card */}
         <div className="pa-hero">
-          <img src={item.image} alt={item.title} className="pa-img" />
+          <img src={item.image} alt={locTitle(item.title, lang)} className="pa-img" />
           <div className="pa-info">
             <div className="pa-top">
               <span className={'pop-rank r' + (rank <= 3 ? rank : 'n')}>#{rank}</span>
-              <b>{item.title}</b>
+              <b>{locTitle(item.title, lang)}</b>
             </div>
             <div className="pa-badges">
               <span className="pa-star"><Star size={11} fill="#f5a623" color="#f5a623" />{item.rating}</span>
@@ -138,7 +138,7 @@ export function ProductAnalytics({ item, rank }: { item: PopularProduct; rank: n
             <div className="pa-box-h"><MapPin size={13} /><span>{t.topCities}</span></div>
             {item.cities.map((c) => (
               <div key={c.name} className="pa-city-row">
-                <div><span>{c.name}</span><b>{c.pct}%</b></div>
+                <div><span>{locCity(c.name, lang)}</span><b>{c.pct}%</b></div>
                 <div className="an-fbar"><i style={{ width: `${c.pct}%` }} /></div>
               </div>
             ))}

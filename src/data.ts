@@ -1,6 +1,10 @@
 // Демо-данные кабинета продавца (как в записи экрана).
 // Личные данные покупателя и продавца заменены на условные.
 
+import type { Lang } from './i18n'
+import { FULL_CATEGORIES, type Cat } from './categoryProfiles'
+export type { Cat }
+
 export const img = (n: string) => `/img/${n}.jpg`
 
 export const seller = {
@@ -359,24 +363,95 @@ export const transactions: Transaction[] = [
   { id: 'tx6', type: 'in', title: 'Двойка · #262078', sub: 'Ташкент (UZ) · Мадина К.', amount: 12659, date: '17.11.2026' },
 ]
 
-export interface Cat { name: string; count?: number; children?: Cat[] }
-const leaf = (n: string): Cat => ({ name: n })
-export const categories: Cat[] = [
-  { name: 'Kadın', count: 20, children: ['Elbiseler', 'Kadın Dış Giyim', 'Kadın Bluz ve Tişörtleri', 'Bluz ve Gömlek', 'Kadın Pantolon ve Kotları', 'Kot Pantolon', 'Kadın Etek', 'Kadın Triko'].map(leaf) },
-  { name: 'Erkek', count: 15, children: ['Erkek Tişört', 'Erkek Gömlek', 'Erkek Pantolon', 'Erkek Dış Giyim', 'Erkek Takım Elbise'].map(leaf) },
-  { name: 'Çocuk', count: 3, children: ['Kız Çocuk', 'Erkek Çocuk', 'Bebek'].map(leaf) },
-  { name: 'Kadın ayakkabısı', count: 13, children: ['Loafer', 'Babet', 'Sneaker', 'Bot', 'Çizme', 'Topuklu Ayakkabı'].map(leaf) },
-  { name: 'Erkek ayakkabısı', count: 10, children: ['Sneaker', 'Klasik', 'Bot', 'Loafer'].map(leaf) },
-  { name: 'Çocuk ayakkabısı', count: 8, children: ['Kız Çocuk Ayakkabı', 'Erkek Çocuk Ayakkabı'].map(leaf) },
-  { name: 'Çantalar ve Aksesuarlar', count: 13, children: ['Kadın Çanta', 'Cüzdan', 'Kemer', 'Şal ve Eşarp'].map(leaf) },
-  { name: 'Güzellik ve Bakım', count: 7, children: ['Cilt Bakımı', 'Makyaj', 'Parfüm'].map(leaf) },
-  { name: 'Diyet takviyeleri ve vitaminler', count: 11, children: ['Vitaminler', 'Mineraller'].map(leaf) },
-  { name: 'Ev ve Yaşam', count: 13, children: ['Ev Tekstili', 'Mutfak', 'Dekorasyon'].map(leaf) },
-  { name: 'Takılar', count: 1, children: ['Kolye'].map(leaf) },
-  { name: 'Gıda Ürünleri', children: [] },
-  { name: 'Oto Yedek Parça', children: [] },
-  { name: 'Ev Temizlik Ürünleri', children: [] },
-]
+export const categories: Cat[] = FULL_CATEGORIES
+
+/* ---------- Полный 100% перевод демо-товаров, городов, адресов и транзакций (TR ↔ RU) ---------- */
+const TITLE_TR: Record<string, string> = {
+  'Лоферы': 'Loafer Ayakkabı',
+  'Куртка': 'Şişme Mont',
+  'Балетки': 'Babet Ayakkabı',
+  'Двойка': 'İkili Takım',
+  'Рубашка женская': 'Kadın Gömlek',
+  'Кроссовки': 'Sneaker Spor Ayakkabı',
+  'Кроссовки белые': 'Beyaz Sneaker',
+  'Кроссовки чёрные': 'Siyah Sneaker',
+  'Сапоги высокие': 'Uzun Çizme',
+  'Сапоги зимние': 'Kışlık Çizme',
+  'Сапоги классика': 'Klasik Çizme',
+  'Женские лоферы': 'Kadın Loafer',
+  'Балетки мягкие': 'Yumuşak Babet',
+  'Кроссовки спорт': 'Spor Sneaker',
+}
+
+const CITY_TR: Record<string, string> = {
+  'Алматы': 'Almatı',
+  'Астана': 'Astana',
+  'Шымкент': 'Şımkent',
+  'Москва': 'Moskova',
+  'Бишкек': 'Bişkek',
+  'Ташкент': 'Taşkent',
+  'Караганда': 'Karaganda',
+}
+
+const ADDR_LBL_TR: Record<string, string> = {
+  'Дом': 'Ev',
+  'ЖК Центр': 'Rezidans',
+  'ЖК Арман': 'Rezidans Arman',
+  'Офис': 'Ofis',
+}
+
+const COLOR_WORD_TR: Record<string, string> = {
+  'Коричневый': 'Kahverengi',
+  'Хаки': 'Haki',
+  'Красный': 'Kırmızı',
+  'Тёмно-синий': 'Lacivert',
+  'Чёрный': 'Siyah',
+  'Белый': 'Beyaz',
+}
+
+export const locTitle = (s: string, lang: Lang): string =>
+  lang === 'ru' ? s : (TITLE_TR[s] ?? s)
+
+export const locCity = (s: string, lang: Lang): string => {
+  if (lang === 'ru') return s
+  let out = s
+  for (const [ru, tr] of Object.entries(CITY_TR)) out = out.replace(ru, tr)
+  return out
+}
+
+export const locAddrLabel = (s: string, lang: Lang): string =>
+  lang === 'ru' ? s : (ADDR_LBL_TR[s] ?? s)
+
+export const locStreet = (s: string, lang: Lang): string =>
+  lang === 'ru'
+    ? s
+    : s
+        .replace('мкр.', 'Mah.')
+        .replace('ул.', 'Cad.')
+        .replace('пр.', 'Bulv.')
+        .replace(', д.', ', No:')
+
+export const locApt = (s: string, lang: Lang): string =>
+  lang === 'ru' ? s : s.replace('кв.', 'Daire')
+
+export const locVariant = (s: string, lang: Lang): string => {
+  if (lang === 'ru') return s
+  let out = s
+  for (const [ru, tr] of Object.entries(COLOR_WORD_TR)) out = out.replace(ru, tr)
+  return out
+}
+
+export const locTxTitle = (s: string, lang: Lang): string => {
+  if (lang === 'ru') return s
+  let out = s
+  for (const [ru, tr] of Object.entries(TITLE_TR)) out = out.replace(ru, tr)
+  return out
+}
+
+export const locTxSub = (s: string, lang: Lang): string => {
+  if (lang === 'ru') return s
+  return locCity(s, lang)
+}
 
 export const brands = ['ABLAZZE', 'ARTICULARIUS', 'Ayshara', 'Azalea', 'BIOPLEX', 'BLUBELLE', 'DERMAMINE', 'dionisos', 'Diva', 'emintekstil', 'Fast step', 'Grand Oxford', 'Grandoxford', 'Imago', 'IMAGO LUXURY', 'Iskra', 'Kiğılı', 'Missmamma', 'Polo Garage']
 

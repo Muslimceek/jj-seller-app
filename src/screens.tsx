@@ -9,6 +9,7 @@ import {
 import {
   orders as INITIAL_ORDERS, products as INITIAL_PRODUCTS, popular, seller, cargoAddress, transactions, stats,
   ALL_COUNTRIES, loadSellerProfile, saveSellerProfile,
+  locTitle, locCity, locAddrLabel, locStreet, locApt, locVariant, locTxTitle, locTxSub,
   type CountryCode, type Order, type OrderStatus, fmt,
 } from './data'
 import { useNav, T, TopBar, LangSheet, BellBtn, Sheet, SwipeLangBar } from './ui'
@@ -39,22 +40,22 @@ function OrderCard({
   onAdvance?: (id: string, next: OrderStatus) => void
 }) {
   const nav = useNav()
-  const { t } = nav
+  const { t, lang } = nav
   const stLabel = t.orders.status[o.status]
   const cls = STATUS_STYLE[o.status]
 
   return (
     <div className="oc">
       <button className="oc-main" onClick={() => nav.push('order', o)}>
-        <img className="oc-img" src={o.image} alt={o.title} />
+        <img className="oc-img" src={o.image} alt={locTitle(o.title, lang)} />
         <div className="oc-info">
           <div className="oc-top">
-            <b className="oc-title">{o.title}</b>
+            <b className="oc-title">{locTitle(o.title, lang)}</b>
             <span className={`st-pill ${cls}`}>{stLabel}</span>
           </div>
           <div className="oc-loc">
             <MapPin size={12} />
-            <span>{o.city} ({o.countryCode}) · {o.buyerName}</span>
+            <span>{locCity(o.city, lang)} ({o.countryCode}) · {o.buyerName}</span>
           </div>
           <div className="oc-mid">
             <span>#{o.id.slice(-6)} · {o.qty} {t.pieces}</span>
@@ -105,7 +106,7 @@ export function Home() {
 type SortMode = 'newest' | 'stock' | 'title'
 export function Products() {
   const nav = useNav()
-  const { t } = nav
+  const { t, lang } = nav
   const [tab, setTab] = useState(takeProductsTab)
   const [q, setQ] = useState('')
   const [sort, setSort] = useState<SortMode>('newest')
@@ -122,16 +123,17 @@ export function Products() {
   const hiddenCnt = items.filter((p) => p.hidden).length
 
   const list = useMemo(() => {
+    const ql = q.trim().toLowerCase()
     const filtered = items.filter((p) => {
       if (tab === 'active' && p.hidden) return false
       if (tab === 'low' && (p.hidden || p.stock > 10)) return false
       if (tab === 'hidden' && !p.hidden) return false
-      return p.title.toLowerCase().includes(q.trim().toLowerCase())
+      return p.title.toLowerCase().includes(ql) || locTitle(p.title, lang).toLowerCase().includes(ql)
     })
     if (sort === 'stock') return [...filtered].sort((a, b) => a.stock - b.stock)
-    if (sort === 'title') return [...filtered].sort((a, b) => a.title.localeCompare(b.title))
+    if (sort === 'title') return [...filtered].sort((a, b) => locTitle(a.title, lang).localeCompare(locTitle(b.title, lang)))
     return filtered
-  }, [items, tab, q, sort])
+  }, [items, tab, q, sort, lang])
 
   const cycleSort = () => {
     const next: SortMode = sort === 'newest' ? 'stock' : sort === 'stock' ? 'title' : 'newest'
@@ -198,10 +200,10 @@ export function Products() {
             return (
               <div className={'pr-card' + (p.hidden ? ' dim' : '')} key={p.id}>
                 <div className="pr-top" onClick={() => nav.push('productDetail', p)}>
-                  <img className="pr-img" src={p.image} alt={p.title} />
+                  <img className="pr-img" src={p.image} alt={locTitle(p.title, lang)} />
                   <div className="pr-info">
                     <div className="pr-row1">
-                      <b>{p.title}</b>
+                      <b>{locTitle(p.title, lang)}</b>
                       <span className="pr-price">{p.price}</span>
                     </div>
                     <div className="pr-badges">
@@ -284,8 +286,10 @@ export function Orders() {
     const matchQ =
       !ql ||
       o.title.toLowerCase().includes(ql) ||
+      locTitle(o.title, nav.lang).toLowerCase().includes(ql) ||
       o.id.includes(ql) ||
       o.city.toLowerCase().includes(ql) ||
+      locCity(o.city, nav.lang).toLowerCase().includes(ql) ||
       o.buyerName.toLowerCase().includes(ql)
     return matchTab && matchQ
   })
@@ -330,7 +334,7 @@ export function Orders() {
 /* ---------- Analiz (Аналитика + кликабельные популярные товары) ---------- */
 export function Analytics() {
   const nav = useNav()
-  const { t } = nav
+  const { t, lang } = nav
   return (
     <div className="screen pg-soft">
       <div className="topbar pg-head">
@@ -350,10 +354,10 @@ export function Analytics() {
             onClick={() => nav.push('productAnalytics', { item: x, rank: i + 1 })}
           >
             <span className={'pop-rank r' + (i < 3 ? i + 1 : 'n')}>#{i + 1}</span>
-            <img className="pop-img" src={x.image} alt={x.title} />
+            <img className="pop-img" src={x.image} alt={locTitle(x.title, lang)} />
             <div className="pop-info">
               <div className="pop-top">
-                <b>{x.title}</b>
+                <b>{locTitle(x.title, lang)}</b>
                 <span className="pop-rev">{fmt(x.revenue)} ₸</span>
               </div>
               <div className="pop-meta">
@@ -373,13 +377,18 @@ export function Analytics() {
 /* ---------- Sipariş detayı (обновлённый дизайн заказа + карта/адрес/город/дом/кв) ---------- */
 export function OrderDetail({ o }: { o: Order }) {
   const nav = useNav()
-  const { t } = nav
+  const { t, lang } = nav
   const [status, setStatus] = useState<OrderStatus>(o.status)
   const cls = STATUS_STYLE[status]
   const steps: OrderStatus[] = ['new', 'processing', 'shipped', 'delivered']
   const curIdx = steps.indexOf(status)
   const countryName = t.countries[o.countryCode]
-  const fullAddress = `${countryName}, ${o.city}, ${o.streetHouse}, ${o.apartment}`
+  const cityName = locCity(o.city, lang)
+  const streetName = locStreet(o.streetHouse, lang)
+  const aptName = locApt(o.apartment, lang)
+  const addrLbl = locAddrLabel(o.addressLabel, lang)
+  const prodTitle = locTitle(o.title, lang)
+  const fullAddress = `${countryName}, ${cityName}, ${streetName}, ${aptName}`
 
   return (
     <div className="screen pg-soft">
@@ -429,10 +438,10 @@ export function OrderDetail({ o }: { o: Order }) {
             </div>
             <div className="od-map-city">
               <Navigation size={11} />
-              <b>{o.city}</b>
+              <b>{cityName}</b>
               <span>· {o.countryCode}</span>
             </div>
-            <span className="od-map-tag">{o.addressLabel}</span>
+            <span className="od-map-tag">{addrLbl}</span>
           </div>
 
           <div className="od-addr-body">
@@ -444,15 +453,15 @@ export function OrderDetail({ o }: { o: Order }) {
             <div className="od-addr-grid">
               <div className="od-addr-cell">
                 <small>{t.city}</small>
-                <b>{o.city}</b>
+                <b>{cityName}</b>
               </div>
               <div className="od-addr-cell">
                 <small>{t.apartment}</small>
-                <b>{o.apartment}</b>
+                <b>{aptName}</b>
               </div>
               <div className="od-addr-cell wide">
                 <small>{t.house}</small>
-                <b>{o.streetHouse}</b>
+                <b>{streetName}</b>
               </div>
             </div>
 
@@ -485,7 +494,7 @@ export function OrderDetail({ o }: { o: Order }) {
           <div className="od-route">
             <div><small>İstanbul</small><b>Laleli Cargo</b></div>
             <span className="od-route-line"><i /></span>
-            <div style={{ textAlign: 'right' }}><small>{countryName}</small><b>{o.city}</b></div>
+            <div style={{ textAlign: 'right' }}><small>{countryName}</small><b>{cityName}</b></div>
           </div>
           <div className="od-cargo-box">
             <div className="od-cargo-t">
@@ -502,9 +511,9 @@ export function OrderDetail({ o }: { o: Order }) {
         {/* Product & Payment Card */}
         <div className="od-card">
           <div className="od-prod">
-            <img className="oc-img" src={o.image} alt={o.title} />
+            <img className="oc-img" src={o.image} alt={prodTitle} />
             <div className="od-prod-info">
-              <b>{o.title}</b>
+              <b>{prodTitle}</b>
               <span>{fmt(Math.round(o.total / o.qty))} ₸ × {o.qty} {t.pieces}</span>
             </div>
             <b className="od-prod-sum"><T n={o.total} /></b>
@@ -529,7 +538,7 @@ export function OrderDetail({ o }: { o: Order }) {
             <b>{t.orders.timeline}</b>
           </div>
           <div className="timeline">
-            <div className="it"><i /><div>{t.orders.status.new}<small>{t.orders.created} · {o.city}</small></div><span className="d">{o.date}</span></div>
+            <div className="it"><i /><div>{t.orders.status.new}<small>{t.orders.created} · {cityName}</small></div><span className="d">{o.date}</span></div>
             <div className="it"><i /><div>{t.orders.paid}<small>{t.orders.paidRef}</small></div><span className="d">{o.date}</span></div>
             {status !== 'new' && (
               <div className={'it' + (status === 'cancelled' ? ' red' : '')}>
@@ -774,13 +783,14 @@ export function Withdraw() {
 /* ---------- Карточка товара (полное 3:4 фото без обрезки головы + минималистичный анимированный дизайн) ---------- */
 export function ProductDetail({ p }: { p: (typeof INITIAL_PRODUCTS)[number] }) {
   const nav = useNav()
-  const { t } = nav
+  const { t, lang } = nav
   const [fitMode, setFitMode] = useState<'contain' | 'top'>('contain')
   const [openVar, setOpenVar] = useState<number | null>(0)
-  const vars = p.variantList ?? [
+  const vars = (p.variantList ?? [
     { name: `${t.pf.colorNames['Siyah'] ?? 'Siyah'}, 37`, price: p.price, qty: 5, image: p.image },
     { name: `${t.pf.colorNames['Siyah'] ?? 'Siyah'}, 38`, price: p.price, qty: 5, image: p.image },
-  ]
+  ]).map((v) => ({ ...v, name: locVariant(v.name, lang) }))
+  const title = locTitle(p.title, lang)
   const tryPrice = Number(p.price.replace(/[^\d]/g, '')) || 0
   const usdPrice = tryPrice ? (tryPrice / 36).toFixed(1).replace('.', ',') : ''
 
@@ -802,7 +812,7 @@ export function ProductDetail({ p }: { p: (typeof INITIAL_PRODUCTS)[number] }) {
           <img
             className={'pd-stage-img ' + fitMode}
             src={p.gallery ?? p.image}
-            alt={p.title}
+            alt={title}
           />
           <span className="pd-stage-pill ok"><CheckCircle2 size={11} />{t.products.active}</span>
           <button
@@ -818,7 +828,7 @@ export function ProductDetail({ p }: { p: (typeof INITIAL_PRODUCTS)[number] }) {
           {/* Заголовок и цена */}
           <div className="pd-head-card">
             <div className="pd-title-row">
-              <h1>{p.title}</h1>
+              <h1>{title}</h1>
               <div className="pd-price-col">
                 <b>{p.price}</b>
                 {usdPrice && <small>≈ ${usdPrice}</small>}
@@ -1294,8 +1304,8 @@ export function Finance() {
                   {isIn ? <ArrowDownLeft size={16} /> : <ArrowUpRight size={16} />}
                 </span>
                 <div className="fin-tx-info">
-                  <b>{tx.title}</b>
-                  <small>{tx.sub} · {tx.date}</small>
+                  <b>{locTxTitle(tx.title, nav.lang)}</b>
+                  <small>{locTxSub(tx.sub, nav.lang)} · {tx.date}</small>
                 </div>
                 <div className="fin-tx-r">
                   <b className={tx.type}>{isIn ? '+' : '−'}{fmt(tx.amount)} ₸</b>

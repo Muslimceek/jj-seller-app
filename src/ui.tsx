@@ -1,6 +1,6 @@
 import { createContext, useContext, useRef, useState, type ReactNode } from 'react'
 import { ChevronLeft, X, Check, Bell, Sparkles, MapPin, ChevronRight, ShoppingBag } from 'lucide-react'
-import { fmt, orders, stats, type Period } from './data'
+import { fmt, orders, stats, locTitle, locCity, locStreet, locApt, type Period } from './data'
 import { getDict, LANG_META, type Dict, type Lang } from './i18n'
 
 export type Route = { name: string; params?: any }
@@ -34,12 +34,12 @@ export function TopBar({ title, center, right, count }: { title: ReactNode; cent
 
 export const SparkBtn = ({ soft }: { soft?: boolean }) => {
   const nav = useNav()
-  return <button className={'icon-btn sparkle' + (soft ? ' soft' : '')} onClick={() => nav.toast('AI asistanı yakında')}><Sparkles size={19} /></button>
+  return <button className={'icon-btn sparkle' + (soft ? ' soft' : '')} onClick={() => nav.toast(nav.lang === 'ru' ? 'AI-помощник скоро' : 'AI asistanı yakında')}><Sparkles size={19} /></button>
 }
 
 export function NotificationsSheet() {
   const nav = useNav()
-  const { t } = nav
+  const { t, lang } = nav
   const incoming = orders.filter((o) => o.status !== 'cancelled').slice(0, 4)
   return (
     <Sheet title={t.notificationsTitle}>
@@ -57,10 +57,10 @@ export function NotificationsSheet() {
               <b>{o.status === 'new' ? t.newOrderNotif : t.orders.status[o.status]}</b>
               <small>{o.date}</small>
             </div>
-            <div className="notif-prod">{o.buyerName} · {o.title} ({o.qty} {t.pieces}) · <b>{fmt(o.total)} ₸</b></div>
+            <div className="notif-prod">{o.buyerName} · {locTitle(o.title, lang)} ({o.qty} {t.pieces}) · <b>{fmt(o.total)} ₸</b></div>
             <div className="notif-loc">
               <MapPin size={12} />
-              <span>{o.city}, {o.streetHouse}, {o.apartment}</span>
+              <span>{locCity(o.city, lang)}, {locStreet(o.streetHouse, lang)}, {locApt(o.apartment, lang)}</span>
               <em className="notif-cc-tag">{o.countryCode}</em>
             </div>
           </div>
@@ -254,10 +254,14 @@ export function Chart({ period }: { period: Period }) {
 }
 
 export function PeriodChips({ value, onChange }: { value: Period; onChange: (p: Period) => void }) {
+  const { lang } = useNav()
+  const labels: Record<Period, string> = lang === 'ru'
+    ? { Gün: 'День', Hafta: 'Неделя', Ay: 'Месяц', Çeyrek: 'Квартал' }
+    : { Gün: 'Gün', Hafta: 'Hafta', Ay: 'Ay', Çeyrek: 'Çeyrek' }
   return (
     <div className="chips">
       {(['Gün', 'Hafta', 'Ay', 'Çeyrek'] as Period[]).map((p) => (
-        <button key={p} className={'chip' + (p === value ? ' on' : '')} onClick={() => onChange(p)}>{p}</button>
+        <button key={p} className={'chip' + (p === value ? ' on' : '')} onClick={() => onChange(p)}>{labels[p]}</button>
       ))}
     </div>
   )

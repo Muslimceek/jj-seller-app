@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { QrCode, ScanBarcode, Maximize2, Download, Copy, Check, Code2, ChevronDown, Truck } from 'lucide-react'
-import type { Order, OrderStatus } from './data'
+import { locCity, type Order, type OrderStatus } from './data'
 import { buildCdekLabelSvg, getCdekLabelForOrder, makeCode128Bars, makeQrMatrix, type CdekLabelData } from './cdekCode'
 import { Sheet, useNav } from './ui'
 
@@ -82,7 +82,7 @@ function CdekFullScreenSheet({
         <div className="cdek-fs-top">
           <span className="cdek-brand-pill">CDEK</span>
           <b>{label.originHub} → {label.destHub}</b>
-          <span className="cdek-fs-cc">{order.city} · {order.countryCode}</span>
+          <span className="cdek-fs-cc">{locCity(order.city, nav.lang)} · {order.countryCode}</span>
         </div>
 
         {/* Переключатель QR ↔ Штрихкод прямо на полном экране */}

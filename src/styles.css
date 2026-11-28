@@ -2671,8 +2671,8 @@ input, textarea { outline: none; }
   flex: none; height: 38px; padding: 0 11px; border-radius: 10px; background: #ae33ff; color: #fff;
   font-size: 12px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;
 }
-.pf-colors.compact { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
-.pf-colors.compact button { height: 36px; padding: 0 8px; border-radius: 10px; font-size: 12px; }
+.pf-colors.compact { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; }
+.pf-colors.compact button { height: 38px; padding: 0 10px; border-radius: 10px; font-size: 12.5px; }
 .pf-colors.compact button span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .pf-clr-more {
   width: 100%; margin-top: 8px; height: 32px; border-radius: 9px; background: #f6f4fa; color: #6e5c8a;
@@ -2872,3 +2872,134 @@ input, textarea { outline: none; }
 }
 .cdek-fs-stage.barcode .cdek-bc-box { width: 100%; border: 0; padding: 6px 2px; }
 .cdek-fs-hint { margin: 0; font-size: 12px; color: #6e7378; text-align: center; }
+
+/* ===== v8: Умные категории, Паспорт золота/украшений, Калькулятор за 1 г, Витринное превью ===== */
+.pf-smart-pill {
+  display: flex; align-items: flex-start; gap: 8px; padding: 10px 12px; border-radius: 13px;
+  background: #f5eeff; border: 1px solid #e2ceff; color: #56238a;
+  font-size: 12px; line-height: 1.4; margin-bottom: 10px;
+}
+.pf-smart-pill svg { flex: none; margin-top: 2px; color: #9c25f0; }
+.pf-smart-pill.gold { background: linear-gradient(135deg, #fffbeb, #fef3c7); border-color: #f5d382; color: #78350f; }
+.pf-smart-pill.gold svg { color: #b45309; }
+
+/* Паспорт золота и ювелирных украшений */
+.pf-jewel-card {
+  background: linear-gradient(180deg, #fffdf6 0%, #ffffff 100%);
+  border: 1.5px solid #f0d894; border-radius: 18px; padding: 14px; margin-bottom: 14px;
+  box-shadow: 0 8px 24px rgba(180, 83, 9, .08); animation: auPop .24s ease;
+}
+.pf-jewel-h { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.pf-jewel-ic {
+  width: 38px; height: 38px; border-radius: 12px; flex: none;
+  background: linear-gradient(135deg, #f59e0b, #b45309); color: #fff;
+  display: grid; place-items: center; box-shadow: 0 4px 12px rgba(180, 83, 9, .3);
+}
+.pf-jewel-h h3 { margin: 0; font-size: 15px; font-weight: 800; color: #1c1610; }
+.pf-jewel-h p { margin: 2px 0 0; font-size: 11.5px; color: #7c6744; }
+
+.pf-j-block { margin-bottom: 12px; }
+.pf-j-lbl {
+  display: flex; align-items: center; justify-content: space-between;
+  font-size: 12px; font-weight: 700; color: #5c4b2c; margin-bottom: 6px;
+}
+.pf-j-lbl span { display: inline-flex; align-items: center; gap: 5px; }
+.pf-j-lbl em { color: #e5484d; font-style: normal; margin-left: 2px; }
+.pf-j-ok { font-size: 12px; color: #15803d; background: #dcfce7; padding: 2px 8px; border-radius: 999px; }
+.pf-j-gram-row { margin-bottom: 7px; }
+.pf-j-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.pf-j-chips button {
+  height: 30px; padding: 0 10px; border-radius: 9px; font-size: 12px; font-weight: 700;
+  background: #fdf6e2; border: 1px solid #edd699; color: #78350f; transition: all .15s;
+}
+.pf-j-chips button.on { background: #b45309; border-color: #b45309; color: #fff; }
+.pf-j-carat { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 9px; padding-top: 9px; border-top: 1px dashed #eedba4; }
+.pf-j-carat label { font-size: 12px; font-weight: 700; color: #5c4b2c; }
+
+.pf-j-toggles { display: flex; flex-direction: column; gap: 7px; }
+.pf-j-tog {
+  width: 100%; display: flex; align-items: center; gap: 9px; padding: 10px 11px;
+  border-radius: 12px; background: #faf8f2; border: 1.5px solid #eee4c7;
+  font-size: 12.5px; font-weight: 700; color: #443927; text-align: left;
+}
+.pf-j-tog.on { background: #fffbeb; border-color: #d97706; color: #78350f; }
+.pf-j-tog svg:first-child { color: #b45309; flex: none; }
+.pf-j-tog span { flex: 1; }
+.pf-j-var-box p { margin: 0 0 8px; font-size: 12px; color: #6c637a; line-height: 1.4; }
+
+/* Калькулятор цены за 1 грамм золота на шаге Цена */
+.pf-gram-calc {
+  background: linear-gradient(135deg, #fffbeb, #fef5d4); border: 1.5px solid #f0d384;
+  border-radius: 14px; padding: 11px 12px; margin-bottom: 11px;
+}
+.pf-gc-h { display: flex; align-items: center; gap: 6px; font-size: 12.5px; color: #78350f; margin-bottom: 8px; }
+.pf-gc-h span { margin-left: auto; font-weight: 800; background: #fde68a; padding: 2px 8px; border-radius: 999px; font-size: 11px; }
+.pf-gc-row { display: flex; gap: 7px; align-items: center; }
+.pf-gc-btn {
+  height: 40px; padding: 0 12px; border-radius: 10px; background: #b45309; color: #fff;
+  font-size: 12.5px; font-weight: 700; flex: none;
+}
+.pf-gc-go { font-size: 12px; font-weight: 700; color: #b45309; text-align: left; }
+.pf-gc-res { margin-top: 8px; font-size: 12px; color: #78350f; }
+.pf-gc-res b { color: #92400e; font-size: 13px; }
+
+/* Красивая витринная карточка покупателя на шаге Превью */
+.pf-mkt-card {
+  background: #fff; border: 1px solid #eae7f3; border-radius: 22px; overflow: hidden;
+  box-shadow: 0 12px 30px rgba(32, 16, 64, .08); margin-bottom: 14px;
+}
+.pf-mkt-media {
+  position: relative; width: 100%; aspect-ratio: 4 / 4.4; max-height: 310px;
+  background: #f4f2f8; overflow: hidden;
+}
+.pf-mkt-media img { width: 100%; height: 100%; object-fit: cover; object-position: center top; display: block; }
+.pf-mkt-empty { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; color: #a39cb2; font-size: 12px; font-weight: 700; }
+.pf-mkt-top-badges { position: absolute; left: 12px; top: 12px; display: flex; gap: 6px; flex-wrap: wrap; }
+.pf-mkt-disc { background: #e5484d; color: #fff; font-size: 11.5px; font-weight: 800; padding: 4px 9px; border-radius: 999px; }
+.pf-mkt-gold {
+  display: inline-flex; align-items: center; gap: 4px;
+  background: rgba(24, 18, 12, .78); color: #fcd34d; border: 1px solid rgba(252, 211, 77, .4);
+  font-size: 11px; font-weight: 800; padding: 4px 9px; border-radius: 999px; backdrop-filter: blur(8px);
+}
+.pf-mkt-ic-col { position: absolute; right: 12px; top: 12px; display: flex; flex-direction: column; gap: 7px; }
+.pf-mkt-ic-col span {
+  width: 34px; height: 34px; border-radius: 50%; background: rgba(255, 255, 255, .9);
+  color: #2c2836; display: grid; place-items: center; box-shadow: 0 4px 12px rgba(0, 0, 0, .12);
+}
+.pf-mkt-dots { position: absolute; left: 50%; bottom: 10px; transform: translateX(-50%); display: flex; gap: 5px; background: rgba(16, 12, 24, .45); padding: 4px 8px; border-radius: 999px; }
+.pf-mkt-dots i { width: 5px; height: 5px; border-radius: 5px; background: rgba(255, 255, 255, .5); }
+.pf-mkt-dots i.on { width: 14px; background: #fff; }
+
+.pf-mkt-body { padding: 14px; }
+.pf-mkt-price-row { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.pf-mkt-price { font-size: 22px; font-weight: 800; color: #9c25f0; letter-spacing: -.4px; }
+.pf-mkt-old { font-size: 13px; color: #9a96a8; margin-left: 7px; }
+.pf-mkt-conv { display: inline-block; margin-left: 8px; font-size: 12px; font-weight: 700; color: #6e687c; }
+.pf-mkt-rate { display: inline-flex; align-items: center; gap: 3px; font-size: 12.5px; font-weight: 800; color: #1b1b1f; background: #fff7e6; padding: 3px 8px; border-radius: 999px; }
+.pf-mkt-title { margin-top: 6px; font-size: 15.5px; font-weight: 700; color: #16131c; line-height: 1.3; }
+.pf-mkt-cat { margin-top: 3px; font-size: 12px; color: #8c8799; }
+
+.pf-mkt-specs { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 9px; }
+.pf-mkt-specs span {
+  display: inline-flex; align-items: center; gap: 3px; font-size: 11px; font-weight: 700;
+  color: #78350f; background: #fef3c7; padding: 3px 8px; border-radius: 7px;
+}
+.pf-mkt-specs span.ok { color: #15803d; background: #dcfce7; }
+
+.pf-mkt-colors { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.pf-mkt-colors span {
+  display: inline-flex; align-items: center; gap: 5px; font-size: 11.5px; font-weight: 600;
+  color: #464152; background: #f6f4fa; padding: 4px 9px; border-radius: 999px;
+}
+.pf-mkt-colors i { width: 11px; height: 11px; border-radius: 50%; border: 1px solid rgba(0, 0, 0, .14); }
+.pf-mkt-sizes { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 9px; }
+.pf-mkt-sizes span {
+  min-width: 34px; height: 28px; padding: 0 8px; border-radius: 8px; border: 1px solid #e6e2f0;
+  display: inline-grid; place-items: center; font-size: 11.5px; font-weight: 700; color: #2b2736;
+}
+.pf-mkt-cta {
+  margin-top: 12px; height: 42px; border-radius: 12px;
+  background: linear-gradient(135deg, #b84bff, #861ce3); color: #fff;
+  font-size: 13.5px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 7px;
+  box-shadow: 0 6px 16px rgba(154, 38, 238, .26);
+}

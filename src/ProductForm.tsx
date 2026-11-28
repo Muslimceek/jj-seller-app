@@ -4,11 +4,14 @@ import {
   Eye, Plus, Minus, Star, Trash2, ArrowLeft, Video, Sparkles, Info, Ruler, Tag, Save, CircleAlert, CircleCheck,
   ImagePlus, Package, Truck, Percent, Wand2, Layers, Shirt, Briefcase, Baby, Footprints, ShoppingBag, Pill, Home,
   Gem, Utensils, Car, Droplets, Clock, Globe, Award, ShieldCheck, Leaf, Heart, Zap, Send, Crop, RotateCw,
-  Pipette, Box, BookOpen, HelpCircle, SlidersHorizontal,
+  Pipette, Box, BookOpen, HelpCircle, SlidersHorizontal, Scale, Gift, Share2, ShoppingCart, Calculator,
 } from 'lucide-react'
 import { useNav, Sheet } from './ui'
-import { categories, brands, tags as TAGS, colors as COLORS, fmt, img, type Cat, type Product } from './data'
+import { categories, brands, colors as COLORS, fmt, img, locTitle, type Cat, type Product } from './data'
 import { SIZE_TABLES, SYS_LABEL, tableForCategory, systemsOf, equivalents, RATE_USD, RATE_TRY, TRY_PER_USD, type SizeSys } from './sizes'
+import {
+  getSmartProfile, JEWELRY_METALS, JEWELRY_STONES, JEWELRY_GRAM_PRESETS,
+} from './categoryProfiles'
 
 type Cur = 'TRY' | 'USD'
 type BoxUnit = 'cm' | 'mm'
@@ -28,7 +31,7 @@ const CAT_VISUAL: Record<string, CatVisual> = {
   'Güzellik ve Bakım': { ic: Sparkles, color: '#e11d48', bg: '#ffe8ee' },
   'Diyet takviyeleri ve vitaminler': { ic: Pill, color: '#16a34a', bg: '#e7f8ee' },
   'Ev ve Yaşam': { ic: Home, color: '#ea580c', bg: '#fff0e6' },
-  'Takılar': { ic: Gem, color: '#7c3aed', bg: '#f1ecff' },
+  'Takılar': { ic: Gem, color: '#b45309', bg: '#fef3c7' },
   'Gıda Ürünleri': { ic: Utensils, color: '#15803d', bg: '#e8f7ec' },
   'Oto Yedek Parça': { ic: Car, color: '#484848', bg: '#efeff3' },
   'Ev Temizlik Ürünleri': { ic: Droplets, color: '#0284c7', bg: '#e6f5fd' },
@@ -42,6 +45,11 @@ const TAG_ICONS: Record<string, typeof Tag> = {
   'Su geçirmez': Droplets,
   'Türkiye üretimi': Award,
   'Organik': Heart,
+  'gold585': Gem,
+  'hallmark': ShieldCheck,
+  'cert': Award,
+  'giftbox': Gift,
+  'handmade': Sparkles,
 }
 
 const DESIGNER_SHADES = [
@@ -173,7 +181,6 @@ function PhotoCropSheet({
   const [zoom, setZoom] = useState(1)
   const [rot, setRot] = useState(0)
   const [pan, setPan] = useState({ x: 0, y: 0 })
-  // Свободная рамка в % от области предпросмотра (0..100)
   const [box, setBox] = useState({ x: 10, y: 8, w: 80, h: 84 })
   const stageRef = useRef<HTMLDivElement>(null)
   const imgRef = useRef<HTMLImageElement>(null)
@@ -255,7 +262,6 @@ function PhotoCropSheet({
       const nh = el.naturalHeight
 
       if (ratio === 'free') {
-        // Сначала рисуем повернутое изображение на промежуточный холст, затем вырезаем точную область рамки
         const baseW = 720
         const baseH = 720
         const tmp = document.createElement('canvas')
@@ -330,7 +336,6 @@ function PhotoCropSheet({
       <div className="cr-wrap">
         <p className="cr-sub">{ratio === 'free' ? pf.cropFreeHint : pf.cropSub}</p>
 
-        {/* Интерактивный кадр: в режиме «Свободно» — перетаскиваемая рамка с 8 ручками */}
         <div
           ref={stageRef}
           className={'cr-stage ' + (ratio === '1:1' || ratio === 'free' ? 'sq' : 'p34') + (ratio === 'free' ? ' free' : '')}
@@ -354,30 +359,28 @@ function PhotoCropSheet({
           />
 
           {ratio === 'free' ? (
-            <>
-              <div
-                className="cr-free-box"
-                style={{ left: `${box.x}%`, top: `${box.y}%`, width: `${box.w}%`, height: `${box.h}%` }}
-                onPointerDown={(e) => onFreeDown('move', e)}
-                onPointerMove={onFreeMove}
-                onPointerUp={onFreeUp}
-                onPointerCancel={onFreeUp}
-              >
-                <div className="cr-grid" aria-hidden>
-                  <i className="v1" /><i className="v2" /><i className="h1" /><i className="h2" />
-                </div>
-                {(['nw', 'ne', 'sw', 'se', 'n', 's', 'w', 'e'] as FreeHandle[]).map((h) => (
-                  <span
-                    key={h}
-                    className={'cr-h ' + h}
-                    onPointerDown={(e) => onFreeDown(h, e)}
-                    onPointerMove={onFreeMove}
-                    onPointerUp={onFreeUp}
-                    onPointerCancel={onFreeUp}
-                  />
-                ))}
+            <div
+              className="cr-free-box"
+              style={{ left: `${box.x}%`, top: `${box.y}%`, width: `${box.w}%`, height: `${box.h}%` }}
+              onPointerDown={(e) => onFreeDown('move', e)}
+              onPointerMove={onFreeMove}
+              onPointerUp={onFreeUp}
+              onPointerCancel={onFreeUp}
+            >
+              <div className="cr-grid" aria-hidden>
+                <i className="v1" /><i className="v2" /><i className="h1" /><i className="h2" />
               </div>
-            </>
+              {(['nw', 'ne', 'sw', 'se', 'n', 's', 'w', 'e'] as FreeHandle[]).map((h) => (
+                <span
+                  key={h}
+                  className={'cr-h ' + h}
+                  onPointerDown={(e) => onFreeDown(h, e)}
+                  onPointerMove={onFreeMove}
+                  onPointerUp={onFreeUp}
+                  onPointerCancel={onFreeUp}
+                />
+              ))}
+            </div>
           ) : (
             <div className="cr-grid" aria-hidden>
               <i className="v1" /><i className="v2" /><i className="h1" /><i className="h2" />
@@ -387,7 +390,6 @@ function PhotoCropSheet({
           <span className="cr-safe">{badgeText}</span>
         </div>
 
-        {/* 4 режима: Свободно / 3:4 / 1:1 / Всё фото */}
         <div className="cr-ratios four">
           {([
             ['free', pf.cropRatioFree],
@@ -411,7 +413,6 @@ function PhotoCropSheet({
           ))}
         </div>
 
-        {/* Масштаб + поворот + авто-верх (лицо) */}
         <div className="cr-ctrl">
           <span>{pf.cropZoom}</span>
           <input
@@ -459,6 +460,7 @@ export function ProductForm({ edit }: { edit?: Product }) {
   const nav = useNav()
   const { t, lang } = nav
   const pf = t.pf
+  const ru = lang === 'ru'
   const isEdit = !!edit
   const p0 = parsePrice(edit?.price)
 
@@ -471,31 +473,40 @@ export function ProductForm({ edit }: { edit?: Product }) {
   const catPathLabel = (path: string) => path.split(' > ').map(catName).join(' › ')
   const colorLabel = (key: string) => pf.colorNames[key] ?? key
 
-  const ATTRS: { k: string; l: string; opts: string[]; multi?: boolean; filter?: boolean }[] = [
-    { k: 'mat', l: pf.attrLabels.mat, opts: pf.attrOpts.mat, multi: true, filter: true },
-    { k: 'season', l: pf.attrLabels.season, opts: pf.attrOpts.season, filter: true },
-    { k: 'fit', l: pf.attrLabels.fit, opts: pf.attrOpts.fit, filter: true },
-    { k: 'pattern', l: pf.attrLabels.pattern, opts: pf.attrOpts.pattern },
-    { k: 'sleeve', l: pf.attrLabels.sleeve, opts: pf.attrOpts.sleeve },
-    { k: 'origin', l: pf.attrLabels.origin, opts: [...pf.originOpts] },
-  ]
-
-  // 1. категория
+  // 1. категория + умный профиль
   const [cat, setCat] = useState(isEdit ? 'Kadın > Bluz ve Gömlek' : '')
   const [stack, setStack] = useState<Cat[]>([])
   const [cq, setCq] = useState('')
-  // 2. фото + обрезка 3:4
+  const profile = useMemo(() => getSmartProfile(cat, lang), [cat, lang])
+  const isJewelry = profile.domain === 'jewelry'
+
+  // 2. фото + обрезка
   const [photos, setPhotos] = useState<string[]>(isEdit ? [edit!.gallery ?? edit!.image, edit!.image] : [])
   const [croppedIdx, setCroppedIdx] = useState<Record<number, boolean>>({})
   const [videos, setVideos] = useState<string[]>([])
   const vidRef = useRef<HTMLInputElement>(null)
-  // 3. описание
-  const [name, setName] = useState(edit?.title ?? '')
+
+  // 3. описание + ювелирный паспорт (граммы, проба, камень, караты, клеймо, коробка)
+  const [name, setName] = useState(edit ? locTitle(edit.title, lang) : '')
   const [brand, setBrand] = useState(isEdit ? 'Iskra' : '')
   const [desc, setDesc] = useState('')
-  const [attrs, setAttrs] = useState<Record<string, string[]>>({ origin: [pf.originOpts[0]] })
+  const [attrs, setAttrs] = useState<Record<string, string[]>>({})
   const [tagOn, setTagOn] = useState<string[]>(isEdit ? ['Türkiye üretimi'] : [])
-  // 4. варианты: компактные цвета + палитра + поиск + свои размеры + урок-таблица
+
+  // Ювелирные поля (активны автоматически при выборе «Украшения / Takılar»)
+  const [jewelGrams, setJewelGrams] = useState('')
+  const [jewelMetalIdx, setJewelMetalIdx] = useState(0)
+  const [jewelStoneIdx, setJewelStoneIdx] = useState(0)
+  const [jewelCarat, setJewelCarat] = useState('')
+  const [jewelHallmark, setJewelHallmark] = useState(true)
+  const [jewelGiftBox, setJewelGiftBox] = useState(true)
+  const [gramRateInput, setGramRateInput] = useState('')
+
+  const activeMetal = JEWELRY_METALS[lang][jewelMetalIdx] ?? JEWELRY_METALS[lang][0]
+  const activeStone = JEWELRY_STONES[lang][jewelStoneIdx] ?? JEWELRY_STONES[lang][0]
+  const gramsN = num(jewelGrams)
+
+  // 4. варианты: умные цвета (металлы для украшений) + палитра + поиск + свои размеры + урок
   const table = useMemo(() => tableForCategory(cat), [cat])
   const [sys, setSys] = useState<SizeSys>(table.base)
   const [selColors, setSelColors] = useState<string[]>(isEdit ? ['Kahverengi', 'Kırmızı', 'Haki', 'Lacivert'] : [])
@@ -503,13 +514,14 @@ export function ProductForm({ edit }: { edit?: Product }) {
   const [colorQ, setColorQ] = useState('')
   const [showPalette, setShowPalette] = useState(false)
   const [showAllColors, setShowAllColors] = useState(false)
-  const [palHex, setPalHex] = useState('#7c3aed')
+  const [palHex, setPalHex] = useState('#d4a038')
   const [palName, setPalName] = useState('')
 
   const [selRows, setSelRows] = useState<number[]>(isEdit ? [2, 3, 4, 5] : [])
   const [customSizes, setCustomSizes] = useState<string[]>([])
   const [sizeQ, setSizeQ] = useState('')
   const [showTable, setShowTable] = useState(false)
+
   // 5. цена (₺ TRY / $ USD), остатки, логистика + коробка (см / мм)
   const [price, setPrice] = useState(p0.v)
   const [cur, setCur] = useState<Cur>(p0.cur)
@@ -531,25 +543,27 @@ export function ProductForm({ edit }: { edit?: Product }) {
     stepBtnsRef.current[step]?.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' })
   }, [step])
 
-  const allColorEntries = useMemo(
-    () => [
-      ...COLORS.map(([k, hex]) => ({ key: k, label: colorLabel(k), hex })),
-      ...customColors.map((c) => ({ key: c.name, label: c.name, hex: c.hex })),
-    ],
-    [customColors, pf.colorNames],
-  )
+  const allColorEntries = useMemo(() => {
+    const priority = profile.priorityColors.map(([label, hex]) => ({ key: label, label, hex }))
+    const base = COLORS.map(([k, hex]) => ({ key: k, label: colorLabel(k), hex }))
+    const custom = customColors.map((c) => ({ key: c.name, label: c.name, hex: c.hex }))
+    return [...priority, ...base, ...custom]
+  }, [profile.priorityColors, customColors, pf.colorNames])
+
   const hexOfColor = (key: string) => allColorEntries.find((c) => c.key === key)?.hex ?? '#ae33ff'
 
   const sysList = systemsOf(table)
   const activeSys = sysList.includes(sys) ? sys : table.base
   const colorList = selColors.length ? selColors : [pf.oneColor]
   const sizeItems = [
-    ...(table.id === 'one' ? [{ id: 'r0', label: table.rows[0][activeSys] ?? table.rows[0].int ?? 'OS', sub: '' }] : selRows.map((r) => ({
-      id: `r${r}`,
-      label: table.rows[r][activeSys] ?? table.rows[r][table.base] ?? '',
-      sub: activeSys !== 'ru' && table.rows[r].ru ? `RU ${table.rows[r].ru}` : table.rows[r].tr ? `EU ${table.rows[r].tr}` : '',
-    }))),
-    ...customSizes.map((cs) => ({ id: `c:${cs}`, label: cs, sub: lang === 'ru' ? 'Свой' : 'Özel' })),
+    ...(table.id === 'one'
+      ? [{ id: 'r0', label: isJewelry && gramsN > 0 ? `${jewelGrams} ${ru ? 'г' : 'gr'}` : (table.rows[0][activeSys] ?? table.rows[0].int ?? 'OS'), sub: '' }]
+      : selRows.map((r) => ({
+          id: `r${r}`,
+          label: table.rows[r][activeSys] ?? table.rows[r][table.base] ?? '',
+          sub: activeSys !== 'ru' && table.rows[r].ru ? `RU ${table.rows[r].ru}` : table.rows[r].tr ? `TR ${table.rows[r].tr}` : '',
+        }))),
+    ...customSizes.map((cs) => ({ id: `c:${cs}`, label: cs, sub: ru ? 'Свой' : 'Özel' })),
   ]
   const variants = colorList.flatMap((c) => sizeItems.map((sz) => ({ c, sz, key: `${c}|${sz.id}` })))
   const stockOf = (k: string) => stock[k] ?? (isEdit ? 5 : 0)
@@ -565,6 +579,7 @@ export function ProductForm({ edit }: { edit?: Product }) {
     cur === 'TRY'
       ? v.toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
       : fmt(Math.round(v))
+  const pricePerGram = isJewelry && gramsN > 0 && final > 0 ? final / gramsN : 0
   const tableName = (id: string) => pf.sizeTableNames[id] ?? id
   const activeStockUnit = pf.stockUnits[stockUnitIdx] ?? pf.stockUnits[0]
 
@@ -581,9 +596,8 @@ export function ProductForm({ edit }: { edit?: Product }) {
     { ok: !!cat, l: pf.selectedCat, s: 0 },
     { ok: photos.length >= 3, l: `${pf.photoTitle} (3+)`, s: 1 },
     { ok: name.trim().length >= 15, l: `${pf.prodName} (15+)`, s: 2 },
-    { ok: !!brand, l: pf.brand, s: 2 },
-    { ok: desc.trim().length >= 100, l: `${pf.desc} (100+)`, s: 2 },
-    { ok: Object.values(attrs).filter((v) => v.length).length >= 3, l: `${pf.attrsTitle} (3+)`, s: 2 },
+    ...(isJewelry ? [{ ok: gramsN > 0, l: ru ? 'Вес золота / украшения (г)' : 'Altın / takı gramajı (gr)', s: 2 }] : []),
+    { ok: desc.trim().length >= 60, l: `${pf.desc}`, s: 2 },
     { ok: selColors.length > 0, l: pf.colorsTitle, s: 3 },
     { ok: table.id === 'one' || selRows.length > 0 || customSizes.length > 0, l: pf.sizesTitle, s: 3 },
     { ok: priceN > 0 && totalStock > 0, l: pf.steps[4], s: 4 },
@@ -620,16 +634,29 @@ export function ProductForm({ edit }: { edit?: Product }) {
       ),
     [],
   )
-  const recent = ['Kadın > Bluz ve Gömlek', 'Kadın ayakkabısı > Loafer', 'Kadın > Kadın Dış Giyim', 'Çantalar ve Aksesuarlar > Kadın Çanta']
-  const quickSearch = lang === 'ru'
-    ? ['Рубашка', 'Лоферы', 'Джинсы', 'Сумки', 'Витамины', 'Парфюм']
-    : ['Gömlek', 'Loafer', 'Kot', 'Çanta', 'Vitamin', 'Parfüm']
+  const recent = [
+    'Takılar > Kolye',
+    'Takılar > Yüzük',
+    'Kadın > Elbiseler',
+    'Kadın ayakkabısı > Loafer',
+  ]
+  const quickSearch = ru
+    ? ['Колье', 'Кольца', 'Платья', 'Лоферы', 'Сумки', 'Кофе']
+    : ['Kolye', 'Yüzük', 'Elbise', 'Loafer', 'Çanta', 'Kahve']
 
   const pickCat = (path: string) => {
+    const nextProf = getSmartProfile(path, lang)
+    const nextTbl = tableForCategory(path)
     setCat(path)
     setCq('')
-    setSys(tableForCategory(path).base)
+    setSys(nextTbl.base)
     setSelRows([])
+    setAttrs({})
+    setTagOn([])
+    setBoxL(nextProf.defaultBox.l)
+    setBoxW(nextProf.defaultBox.w)
+    setBoxH(nextProf.defaultBox.h)
+    setBoxUnit(nextProf.defaultBox.unit)
     setTried(false)
     bodyRef.current?.scrollTo({ top: 0, behavior: 'smooth' })
   }
@@ -638,7 +665,7 @@ export function ProductForm({ edit }: { edit?: Product }) {
     if (!q) return []
     return allLeaves.filter((x) =>
       x.path.toLowerCase().includes(q) || catPathLabel(x.path).toLowerCase().includes(q),
-    ).slice(0, 14)
+    ).slice(0, 18)
   }, [allLeaves, cq, pf.catNames])
 
   const pickedRoot = cat ? cat.split(' > ')[0] : ''
@@ -654,7 +681,7 @@ export function ProductForm({ edit }: { edit?: Product }) {
       <div className="cat-search">
         <Search size={17} className="cat-search-ic" />
         <input placeholder={pf.catSearchPh} value={cq} onChange={(e) => setCq(e.target.value)} />
-        {cq && <button className="cat-search-x" onClick={() => setCq('')} aria-label={t.clear}><X size={13} /></button>}
+        {cq && <button type="button" className="cat-search-x" onClick={() => setCq('')} aria-label={t.clear}><X size={13} /></button>}
       </div>
 
       {cat && !cq && (
@@ -666,9 +693,12 @@ export function ProductForm({ edit }: { edit?: Product }) {
           <div className="cat-picked-info">
             <small>{pickedRoot !== pickedLeaf ? catName(pickedRoot) : pf.selectedCat}</small>
             <b>{catName(pickedLeaf)}</b>
-            <span className="cat-size-badge"><Ruler size={11} />{pf.sizeAuto}: {tableName(table.id)}</span>
+            <span className="cat-size-badge">
+              {isJewelry ? <Gem size={11} /> : <Ruler size={11} />}
+              {isJewelry ? profile.badge : `${pf.sizeAuto}: ${tableName(table.id)}`}
+            </span>
           </div>
-          <button className="cat-picked-btn" onClick={() => { setCat(''); setStack([]) }}>{t.change}</button>
+          <button type="button" className="cat-picked-btn" onClick={() => { setCat(''); setStack([]) }}>{t.change}</button>
         </div>
       )}
 
@@ -681,7 +711,7 @@ export function ProductForm({ edit }: { edit?: Product }) {
               const on = cat === item.path
               const sz = tableName(tableForCategory(item.path).id)
               return (
-                <button key={item.path} className={'cat-subrow' + (on ? ' on' : '')} onClick={() => pickCat(item.path)}>
+                <button type="button" key={item.path} className={'cat-subrow' + (on ? ' on' : '')} onClick={() => pickCat(item.path)}>
                   <span className="cat-mini-ic" style={{ background: v.bg, color: v.color }}><Ic size={15} /></span>
                   <span className="cat-subrow-t">
                     <b>{catName(item.leaf)}</b>
@@ -700,7 +730,7 @@ export function ProductForm({ edit }: { edit?: Product }) {
               <b>«{cq}» {pf.noCatTitle}</b>
               <p>{pf.noCatSub}</p>
               <div className="cat-qchips">
-                {quickSearch.map((w) => <button key={w} onClick={() => setCq(w)}>{w}</button>)}
+                {quickSearch.map((w) => <button type="button" key={w} onClick={() => setCq(w)}>{w}</button>)}
               </div>
             </div>
           )}
@@ -715,7 +745,7 @@ export function ProductForm({ edit }: { edit?: Product }) {
               const Ic = v.ic
               const on = cat === r
               return (
-                <button key={r} className={'cat-rec-card' + (on ? ' on' : '')} onClick={() => pickCat(r)}>
+                <button type="button" key={r} className={'cat-rec-card' + (on ? ' on' : '')} onClick={() => pickCat(r)}>
                   <span className="cat-rec-ic" style={{ background: v.bg, color: v.color }}><Ic size={15} /></span>
                   <span className="cat-rec-txt"><b>{catName(leaf)}</b><small>{catName(root)}</small></span>
                   {on && <span className="cat-rec-chk"><Check size={11} strokeWidth={3} /></span>}
@@ -738,6 +768,7 @@ export function ProductForm({ edit }: { edit?: Product }) {
               const isSelected = cat === c.name || pickedRoot === c.name
               return (
                 <button
+                  type="button"
                   key={c.name}
                   className={'cat-card' + (isSelected ? ' on' : '')}
                   onClick={() => { if (leaf) pickCat(c.name); else setStack([c]) }}
@@ -746,10 +777,8 @@ export function ProductForm({ edit }: { edit?: Product }) {
                     <span className="cat-card-ic" style={{ background: v.bg, color: v.color }}><Ic size={19} /></span>
                     {isSelected ? (
                       <span className="cat-card-chk"><Check size={11} strokeWidth={3} /></span>
-                    ) : subCount > 0 ? (
-                      <span className="cat-card-cnt">{subCount}</span>
                     ) : (
-                      <span className="cat-card-cnt leaf">1</span>
+                      <span className="cat-card-cnt">{subCount}</span>
                     )}
                   </div>
                   <div className="cat-card-name">{catName(c.name)}</div>
@@ -765,7 +794,7 @@ export function ProductForm({ edit }: { edit?: Product }) {
       ) : (
         <>
           <div className="cat-parent">
-            <button className="cat-back-pill" onClick={() => setStack(stack.slice(0, -1))}>
+            <button type="button" className="cat-back-pill" onClick={() => setStack(stack.slice(0, -1))}>
               <ArrowLeft size={14} />{pf.allCats}
             </button>
             <div className="cat-parent-main">
@@ -781,7 +810,7 @@ export function ProductForm({ edit }: { edit?: Product }) {
               const on = cat === path
               const sz = tableName(tableForCategory(path).id)
               return (
-                <button key={c.name} className={'cat-subrow' + (on ? ' on' : '')} onClick={() => { if (leaf) pickCat(path); else setStack([...stack, c]) }}>
+                <button type="button" key={c.name} className={'cat-subrow' + (on ? ' on' : '')} onClick={() => { if (leaf) pickCat(path); else setStack([...stack, c]) }}>
                   <span className={'cat-check-dot' + (on ? ' on' : '')}>{on && <Check size={11} strokeWidth={3} />}</span>
                   <span className="cat-subrow-t"><b>{catName(c.name)}</b></span>
                   <span className="cat-subrow-r"><em className="cat-sz-pill">{sz}</em>{!leaf && <ChevronRight size={15} />}</span>
@@ -795,7 +824,7 @@ export function ProductForm({ edit }: { edit?: Product }) {
     </>
   )
 
-  /* ---------- 2. ФОТОГРАФИИ + РЕДАКТОР ОБРЕЗКИ 3:4 ---------- */
+  /* ---------- 2. ФОТОГРАФИИ + УМНАЯ ПОДСКАЗКА КАТЕГОРИИ + СВОБОДНАЯ ОБРЕЗКА ---------- */
   const openCropFor = (idx: number, src: string) => {
     nav.sheet(
       <PhotoCropSheet
@@ -831,6 +860,13 @@ export function ProductForm({ edit }: { edit?: Product }) {
 
   const StepPhoto = (
     <>
+      {cat && (
+        <div className={'pf-smart-pill' + (isJewelry ? ' gold' : '')}>
+          {isJewelry ? <Gem size={14} /> : <Wand2 size={14} />}
+          <span><b>{profile.badge}:</b> {profile.photoTip}</span>
+        </div>
+      )}
+
       <div className="pf-ph-meter">
         <div className="pf-ph-meter-t">
           <span><Camera size={14} />{pf.photoTitle}</span>
@@ -845,7 +881,7 @@ export function ProductForm({ edit }: { edit?: Product }) {
         <div className="pf-dropzone">
           <div className="pf-drop-ic"><ImagePlus size={28} /></div>
           <b>{pf.dropTitle}</b>
-          <p>{pf.dropSub}</p>
+          <p>{profile.photoTip}</p>
           <div className="pf-drop-acts">
             <label className="pf-drop-btn primary">
               <Images size={16} />{pf.fromGallery}
@@ -863,9 +899,9 @@ export function ProductForm({ edit }: { edit?: Product }) {
           {photos.map((ph, i) => (
             <div key={i} className={'pf-ph' + (i === 0 ? ' cover' : '')}>
               <button type="button" className="pf-ph-tap" onClick={() => nav.sheet(
-                <Sheet title={`${lang === 'ru' ? 'Фото' : 'Foto'} ${i + 1}`}>
+                <Sheet title={`${ru ? 'Фото' : 'Foto'} ${i + 1}`}>
                   <button className="opt on" onClick={() => openCropFor(i, ph)}>
-                    <span style={{ display: 'flex', gap: 10 }}><Crop size={16} />{pf.cropBtn} (3:4)</span>
+                    <span style={{ display: 'flex', gap: 10 }}><Crop size={16} />{pf.cropBtn}</span>
                   </button>
                   {i > 0 && <button className="opt" onClick={() => { setPhotos([ph, ...photos.filter((_, j) => j !== i)]); nav.sheet(null) }}><span style={{ display: 'flex', gap: 10 }}><Star size={16} />{pf.makeCover}</span></button>}
                   {i > 0 && <button className="opt" onClick={() => { const a = [...photos];[a[i - 1], a[i]] = [a[i], a[i - 1]]; setPhotos(a); nav.sheet(null) }}><span style={{ display: 'flex', gap: 10 }}><ChevronLeft size={16} />{pf.moveLeft}</span></button>}
@@ -875,10 +911,10 @@ export function ProductForm({ edit }: { edit?: Product }) {
               )}>
                 <img src={ph} alt={`Foto ${i + 1}`} style={{ objectPosition: 'center top' }} />
                 {i === 0 ? <span className="pf-cover"><Star size={10} fill="#fff" />{pf.cover}</span> : <span className="pf-num">{i + 1}</span>}
-                {croppedIdx[i] && <span className="pf-ph-34">3:4 ✓</span>}
+                {croppedIdx[i] && <span className="pf-ph-34">✓</span>}
               </button>
               <button type="button" className="pf-ph-crop" onClick={() => openCropFor(i, ph)} aria-label={pf.cropBtn}>
-                <Crop size={11} />{lang === 'ru' ? 'Кадр' : 'Kırp'}
+                <Crop size={11} />{ru ? 'Кадр' : 'Kırp'}
               </button>
               <button type="button" className="pf-ph-del" onClick={() => setPhotos(photos.filter((_, j) => j !== i))} aria-label={t.delete}><X size={11} strokeWidth={2.8} /></button>
             </div>
@@ -894,7 +930,7 @@ export function ProductForm({ edit }: { edit?: Product }) {
         <ul>
           {[
             [photos.length >= 3, '3+ · 3:4 (900×1200 px) · JPG / PNG / WEBP'],
-            [Object.keys(croppedIdx).length > 0, pf.cropSub],
+            [Object.keys(croppedIdx).length > 0, pf.cropFreeHint],
           ].map(([ok, tx]) => <li key={tx as string} className={ok ? 'ok' : ''}><CircleCheck size={13} />{tx as string}</li>)}
         </ul>
       </div>
@@ -908,35 +944,55 @@ export function ProductForm({ edit }: { edit?: Product }) {
     </>
   )
 
-  /* ---------- 3. ОПИСАНИЕ И ХАРАКТЕРИСТИКИ ---------- */
+  /* ---------- 3. ОПИСАНИЕ + ЮВЕЛИРНЫЙ ПАСПОРТ (ГРАММЫ / ПРОБА / КАМЕНЬ / КЛЕЙМО) ---------- */
   const fillSmartTitle = () => {
+    if (isJewelry) {
+      const leafNm = pickedLeaf ? catName(pickedLeaf) : (ru ? 'Украшение' : 'Takı')
+      const stoneTxt = jewelStoneIdx > 0 ? (ru ? `с камнем (${activeStone})` : `${activeStone} taşlı`) : ''
+      const gramTxt = gramsN > 0 ? `${jewelGrams} ${ru ? 'г' : 'gr'}` : ''
+      setName([leafNm, activeMetal, stoneTxt, gramTxt].filter(Boolean).join(', '))
+      nav.toast(pf.titleApplied)
+      return
+    }
     const parts = [
       pickedRoot && pickedRoot !== pickedLeaf ? catName(pickedRoot).split(' ')[0] : '',
-      attrs.pattern?.[0],
-      attrs.fit?.[0],
-      pickedLeaf ? catName(pickedLeaf) : (lang === 'ru' ? 'Товар' : 'Ürün'),
-      attrs.mat?.[0] ? `(${attrs.mat[0]})` : '',
+      Object.values(attrs).flat()[0],
+      pickedLeaf ? catName(pickedLeaf) : (ru ? 'Товар' : 'Ürün'),
     ].filter(Boolean)
-    setName(parts.join(' ').trim() || (lang === 'ru' ? 'Женская хлопковая рубашка' : 'Kadın pamuklu gömlek'))
+    setName(parts.join(' ').trim() || (ru ? 'Женская хлопковая рубашка' : 'Kadın pamuklu gömlek'))
     nav.toast(pf.titleApplied)
   }
 
   const fillAiDesc = () => {
-    const a = (k: string) => attrs[k]?.join(', ')
+    if (isJewelry) {
+      const lines = [
+        `${name || (pickedLeaf ? catName(pickedLeaf) : (ru ? 'Ювелирное украшение' : 'Mücevher'))}${brand && brand !== pf.brandless ? ` — ${brand}` : ''}.`,
+        `• ${ru ? 'Металл и проба' : 'Maden ve ayar'}: ${activeMetal}`,
+        gramsN > 0 ? `• ${ru ? 'Точный вес' : 'Net ağırlık'}: ${jewelGrams} ${ru ? 'г' : 'gr'}` : '',
+        `• ${ru ? 'Вставка' : 'Taş'}: ${activeStone}${jewelStoneIdx > 0 && jewelCarat ? ` (${jewelCarat} ct)` : ''}`,
+        jewelHallmark ? `• ${ru ? 'Имеется официальное пробирное клеймо' : 'Resmi ayar damgalı'}` : '',
+        jewelGiftBox ? `• ${ru ? 'В комплекте: фирменная подарочная коробка и сертификат подлинности' : 'Hediye kutusu ve orijinallik sertifikası dahildir'}` : '',
+      ].filter(Boolean)
+      setDesc(lines.join('\n'))
+      nav.toast(pf.aiDescToast)
+      return
+    }
+    const attrLines = profile.attrs
+      .filter((a) => attrs[a.k]?.length)
+      .map((a) => `• ${a.l}: ${attrs[a.k].join(', ')}`)
     const lines = [
-      `${name || (pickedLeaf ? catName(pickedLeaf) : (lang === 'ru' ? 'Товар' : 'Ürün'))}${brand && brand !== pf.brandless ? ` — ${brand}` : ''}.`,
-      a('mat') ? `• ${a('mat')}` : (lang === 'ru' ? '• Качественная дышащая ткань' : '• Pamuk / kaliteli kumaş'),
-      a('fit') ? `• ${a('fit')}` : (lang === 'ru' ? '• Удобная посадка' : '• Normal kalıp'),
-      a('season') ? `• ${a('season')}` : '',
-      a('origin') ? `• ${a('origin')}` : '',
-      lang === 'ru' ? '• Рекомендуется бережная стирка при 30°C.' : '• 30°C hassas yıkama önerilir.',
-    ].filter(Boolean)
+      `${name || (pickedLeaf ? catName(pickedLeaf) : (ru ? 'Товар' : 'Ürün'))}${brand && brand !== pf.brandless ? ` — ${brand}` : ''}.`,
+      ...(attrLines.length ? attrLines : [ru ? '• Высокое турецкое качество и аккуратный пошив' : '• Yüksek Türkiye kalitesi ve özenli işçilik']),
+      ru ? '• Быстрая отправка из Стамбула в Казахстан, Россию, Кыргызстан и Узбекистан.' : '• İstanbul’dan Kazakistan, Rusya, Kırgızistan ve Özbekistan’a hızlı gönderim.',
+    ]
     setDesc(lines.join('\n'))
     nav.toast(pf.aiDescToast)
   }
 
-  const filledAttrCount = Object.values(attrs).filter((v) => v.length > 0).length
-  const quickBrands = [pf.brandless, 'Iskra', 'Diva', 'Kiğılı', 'Polo Garage']
+  const filledAttrCount = profile.attrs.filter((a) => (attrs[a.k]?.length ?? 0) > 0).length
+  const quickBrands = isJewelry
+    ? [pf.brandless, 'Atasay', 'Altınbaş', 'Zen', 'Koçak']
+    : [pf.brandless, 'Iskra', 'Diva', 'Kiğılı', 'Polo Garage']
 
   const StepInfo = (
     <>
@@ -944,6 +1000,112 @@ export function ProductForm({ edit }: { edit?: Product }) {
         <Globe size={15} />
         <span>{pf.autoTranslate}</span>
       </div>
+
+      {/* Умная карточка для ЗОЛОТА И УКРАШЕНИЙ (граммы, проба, камень, караты, клеймо, коробка) */}
+      {isJewelry && (
+        <section className="pf-jewel-card">
+          <div className="pf-jewel-h">
+            <span className="pf-jewel-ic"><Gem size={18} /></span>
+            <div>
+              <h3>{ru ? 'Паспорт золота и украшения' : 'Altın ve Mücevher Özellikleri'}</h3>
+              <p>{ru ? 'Точные граммы, проба и гарантии повышают доверие покупателей' : 'Net gramaj, ayar ve sertifika bilgisi alıcı güvenini artırır'}</p>
+            </div>
+          </div>
+
+          {/* Граммовка (0.01 г + быстрые чипы) */}
+          <div className="pf-j-block">
+            <div className="pf-j-lbl">
+              <span><Scale size={13} />{ru ? 'Вес изделия (граммы)' : 'Ürün gramajı (gr)'}<em>*</em></span>
+              {gramsN > 0 && <b className="pf-j-ok">{jewelGrams} {ru ? 'г' : 'gr'}</b>}
+            </div>
+            <div className="pf-j-gram-row">
+              <div className="pf-input big" style={{ height: 48 }}>
+                <input
+                  inputMode="decimal"
+                  placeholder="3.45"
+                  value={jewelGrams}
+                  onChange={(e) => setJewelGrams(e.target.value.replace(/[^\d.,]/g, '').replace(',', '.'))}
+                />
+                <span>{ru ? 'г' : 'gr'}</span>
+              </div>
+            </div>
+            <div className="pf-j-chips">
+              {JEWELRY_GRAM_PRESETS.map((g) => (
+                <button
+                  key={g}
+                  type="button"
+                  className={jewelGrams === g ? 'on' : ''}
+                  onClick={() => setJewelGrams(g)}
+                >
+                  {g} {ru ? 'г' : 'gr'}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Металл и Проба (Ayar) */}
+          <div className="pf-j-block">
+            <div className="pf-j-lbl"><span>{ru ? 'Металл и проба (Ayar)' : 'Maden ve Ayar'}</span></div>
+            <div className="pf-chips">
+              {JEWELRY_METALS[lang].map((m, idx) => (
+                <button
+                  key={m}
+                  type="button"
+                  className={jewelMetalIdx === idx ? 'on' : ''}
+                  onClick={() => setJewelMetalIdx(idx)}
+                >
+                  {jewelMetalIdx === idx && <Check size={12} />}{m}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Камень и караты */}
+          <div className="pf-j-block">
+            <div className="pf-j-lbl"><span>{ru ? 'Вставка / Камень' : 'Taş cinsi'}</span></div>
+            <div className="pf-chips">
+              {JEWELRY_STONES[lang].map((st, idx) => (
+                <button
+                  key={st}
+                  type="button"
+                  className={jewelStoneIdx === idx ? 'on' : ''}
+                  onClick={() => setJewelStoneIdx(idx)}
+                >
+                  {jewelStoneIdx === idx && <Check size={12} />}{st}
+                </button>
+              ))}
+            </div>
+            {jewelStoneIdx > 0 && (
+              <div className="pf-j-carat">
+                <label>{ru ? 'Вес камня (караты)' : 'Taş ağırlığı (karat)'}</label>
+                <div className="pf-box-inp" style={{ maxWidth: 150 }}>
+                  <input
+                    inputMode="decimal"
+                    placeholder="0.25"
+                    value={jewelCarat}
+                    onChange={(e) => setJewelCarat(e.target.value.replace(/[^\d.,]/g, '').replace(',', '.'))}
+                  />
+                  <span>ct</span>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Плюсы против конкурентов: пробирное клеймо + сертификат и подарочная коробка */}
+          <div className="pf-j-toggles">
+            <button type="button" className={'pf-j-tog' + (jewelHallmark ? ' on' : '')} onClick={() => setJewelHallmark(!jewelHallmark)}>
+              <ShieldCheck size={15} />
+              <span>{ru ? 'Есть пробирное клеймо (Damga)' : 'Resmi ayar damgası var'}</span>
+              <em className={'pe-geo-chk' + (jewelHallmark ? ' on' : '')}>{jewelHallmark && <Check size={10} strokeWidth={3} />}</em>
+            </button>
+            <button type="button" className={'pf-j-tog' + (jewelGiftBox ? ' on' : '')} onClick={() => setJewelGiftBox(!jewelGiftBox)}>
+              <Gift size={15} />
+              <span>{ru ? 'Подарочная коробка и сертификат' : 'Hediye kutusu ve sertifika'}</span>
+              <em className={'pe-geo-chk' + (jewelGiftBox ? ' on' : '')}>{jewelGiftBox && <Check size={10} strokeWidth={3} />}</em>
+            </button>
+          </div>
+        </section>
+      )}
 
       <Field
         label={pf.prodName}
@@ -953,7 +1115,7 @@ export function ProductForm({ edit }: { edit?: Product }) {
         right={<span className={'pf-count' + (name.trim().length >= 15 ? ' ok' : '')}>{name.trim().length >= 15 ? '✓ ' : ''}{name.length}/100</span>}
       >
         <div className="pf-input">
-          <input maxLength={100} placeholder={pf.prodNamePh} value={name} onChange={(e) => setName(e.target.value)} />
+          <input maxLength={100} placeholder={profile.namePh} value={name} onChange={(e) => setName(e.target.value)} />
           {name && <button type="button" className="cat-search-x" onClick={() => setName('')}><X size={12} /></button>}
         </div>
         <button type="button" className="pf-ai" onClick={fillSmartTitle}><Wand2 size={13} />{pf.suggestTitle}</button>
@@ -972,16 +1134,16 @@ export function ProductForm({ edit }: { edit?: Product }) {
       <Field
         label={pf.desc}
         icon={<Sparkles size={13} color="#ae33ff" />}
-        right={<span className={'pf-count' + (desc.trim().length >= 100 ? ' ok' : '')}>{desc.trim().length >= 100 ? '✓ ' : ''}{desc.length}/5000</span>}
+        right={<span className={'pf-count' + (desc.trim().length >= 60 ? ' ok' : '')}>{desc.trim().length >= 60 ? '✓ ' : ''}{desc.length}/5000</span>}
       >
         <div className="pf-input area">
-          <textarea maxLength={5000} rows={5} placeholder={pf.descPh} value={desc} onChange={(e) => setDesc(e.target.value)} />
+          <textarea maxLength={5000} rows={5} placeholder={profile.descPh} value={desc} onChange={(e) => setDesc(e.target.value)} />
         </div>
         <button type="button" className="pf-ai" onClick={fillAiDesc}><Sparkles size={14} />{pf.aiDesc}</button>
       </Field>
 
-      <Section icon={<Layers size={16} />} title={pf.attrsTitle} sub={`${filledAttrCount}/${ATTRS.length} ${pf.attrsFilled}`}>
-        {ATTRS.map((a) => {
+      <Section icon={<Layers size={16} />} title={pf.attrsTitle} sub={`${filledAttrCount}/${profile.attrs.length} ${pf.attrsFilled}`}>
+        {profile.attrs.map((a) => {
           const picked = attrs[a.k] ?? []
           return (
             <div key={a.k} className="pf-attr">
@@ -1016,18 +1178,18 @@ export function ProductForm({ edit }: { edit?: Product }) {
 
       <Section icon={<Tag size={16} />} title={pf.tagsTitle} sub={pf.tagsSub}>
         <div className="pf-chips">
-          {TAGS.map((tg) => {
-            const on = tagOn.includes(tg.name)
-            const Tic = TAG_ICONS[tg.name] ?? Tag
+          {profile.tags.map((tg) => {
+            const on = tagOn.includes(tg.key)
+            const Tic = TAG_ICONS[tg.key] ?? Tag
             return (
               <button
                 type="button"
-                key={tg.name}
+                key={tg.key}
                 className={on ? 'on' : ''}
                 style={on ? { background: tg.bg, borderColor: tg.color, color: tg.color } : undefined}
-                onClick={() => toggle(tagOn, setTagOn, tg.name)}
+                onClick={() => toggle(tagOn, setTagOn, tg.key)}
               >
-                <Tic size={12} />{pf.tagNames[tg.name] ?? tg.name}
+                <Tic size={12} />{tg.label}
               </button>
             )
           })}
@@ -1036,7 +1198,7 @@ export function ProductForm({ edit }: { edit?: Product }) {
     </>
   )
 
-  /* ---------- 4. ЦВЕТА (КОМПАКТНЫЙ ПОИСК + ПАЛИТРА) И РАЗМЕРЫ (СВОЙ РАЗМЕР + УРОК) ---------- */
+  /* ---------- 4. ЦВЕТА (МЕТАЛЛЫ ДЛЯ УКРАШЕНИЙ + ПАЛИТРА) И РАЗМЕРЫ (КОЛЬЦА/ЦЕПОЧКИ/УРОК) ---------- */
   const filteredColors = useMemo(() => {
     const q = colorQ.trim().toLowerCase()
     if (q) return allColorEntries.filter((c) => c.label.toLowerCase().includes(q) || c.key.toLowerCase().includes(q))
@@ -1056,10 +1218,12 @@ export function ProductForm({ edit }: { edit?: Product }) {
 
   const pickPopularSizes = () => {
     if (table.id === 'shoes') setSelRows([1, 2, 3, 4, 5])
+    else if (table.id === 'rings') setSelRows([2, 3, 4, 5])
+    else if (table.id === 'chains') setSelRows([1, 2, 3])
+    else if (table.id === 'bracelets') setSelRows([1, 2, 3])
     else if (table.id === 'women') setSelRows([2, 3, 4, 5])
     else if (table.id === 'men') setSelRows([1, 2, 3, 4])
-    else if (table.id === 'jeans') setSelRows([2, 3, 4, 5])
-    else setSelRows(table.rows.slice(0, 4).map((_, i) => i))
+    else setSelRows(table.rows.slice(0, Math.min(4, table.rows.length)).map((_, i) => i))
     setTried(false)
   }
 
@@ -1075,7 +1239,6 @@ export function ProductForm({ edit }: { edit?: Product }) {
   const addCustomSize = () => {
     const v = sizeQ.trim().toUpperCase()
     if (!v) return
-    // Если точно совпадает со строкой таблицы — выбираем её, иначе добавляем свой размер
     const hit = table.rows.findIndex((row) => Object.values(row).some((x) => x && x.toLowerCase() === v.toLowerCase()))
     if (hit >= 0) {
       setSelRows((curR) => (curR.includes(hit) ? curR : [...curR, hit].sort((a, b) => a - b)))
@@ -1094,10 +1257,9 @@ export function ProductForm({ edit }: { edit?: Product }) {
 
   const StepVar = (
     <>
-      {/* Компактный блок цветов: поиск + палитра + выбранные чипы (без гигантской стены) */}
       <Section
         icon={<Palette size={16} />}
-        title={pf.colorsTitle}
+        title={isJewelry ? (ru ? 'Оттенок металла / Цвет' : 'Maden Rengi / Ton') : pf.colorsTitle}
         sub={selColors.length ? `${selColors.length} ${pf.colorsSelected}` : pf.colorsSub}
         right={selColors.length ? <button type="button" className="pf-link" onClick={() => setSelColors([])}>{t.clear}</button> : null}
       >
@@ -1116,7 +1278,6 @@ export function ProductForm({ edit }: { edit?: Product }) {
           </button>
         </div>
 
-        {/* Выбранные цвета компактной строкой */}
         {selColors.length > 0 && (
           <div className="pf-clr-picked">
             {selColors.map((k) => {
@@ -1132,7 +1293,6 @@ export function ProductForm({ edit }: { edit?: Product }) {
           </div>
         )}
 
-        {/* Интерактивная палитра своего оттенка */}
         {showPalette && (
           <div className="pf-pal-box">
             <div className="pf-pal-h">
@@ -1169,7 +1329,6 @@ export function ProductForm({ edit }: { edit?: Product }) {
           </div>
         )}
 
-        {/* Компактная сетка (6 базовых цветов по умолчанию + развернуть по желанию) */}
         <div className="pf-colors compact">
           {filteredColors.map((c) => {
             const on = selColors.includes(c.key)
@@ -1192,10 +1351,10 @@ export function ProductForm({ edit }: { edit?: Product }) {
         )}
       </Section>
 
-      {/* Размеры: поиск/фильтр + добавить свой размер + обучающая таблица */}
+      {/* Размеры / Вес / Длина в зависимости от категории */}
       <Section
-        icon={<Ruler size={16} />}
-        title={pf.sizesTitle}
+        icon={isJewelry ? <Gem size={16} /> : <Ruler size={16} />}
+        title={isJewelry && table.id === 'one' ? (ru ? 'Вес в граммах (варианты)' : 'Gramaj (varyantlar)') : pf.sizesTitle}
         sub={`${tableName(table.id)} · ${pf.sizesAutoSub}`}
         right={table.id !== 'one' ? (
           <button type="button" className="pf-link" onClick={() => setSelRows(selRows.length === table.rows.length ? [] : table.rows.map((_, i) => i))}>
@@ -1204,14 +1363,46 @@ export function ProductForm({ edit }: { edit?: Product }) {
         ) : null}
       >
         {table.id === 'one' ? (
-          <div className="pf-note"><Info size={14} />{pf.oneSizeNote}</div>
+          <>
+            {isJewelry ? (
+              <div className="pf-j-var-box">
+                <p>{ru ? 'Для серёг/комплектов/брошей можно добавить несколько весов (например: 2.5 г, 4.0 г) или указать точный вес:' : 'Küpe/set/broş için farklı gramaj seçenekleri (örn: 2.5 gr, 4.0 gr) ekleyebilirsiniz:'}</p>
+                <div className="pf-sz-custom-bar">
+                  <div className="pf-clr-search">
+                    <Scale size={14} />
+                    <input
+                      placeholder={ru ? 'Добавить вес (напр: 3.5 г, 5.2 г)' : 'Gramaj ekle (örn: 3.5 gr, 5.2 gr)'}
+                      value={sizeQ}
+                      onChange={(e) => setSizeQ(e.target.value)}
+                      onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addCustomSize() } }}
+                    />
+                  </div>
+                  <button type="button" className={'pf-sz-add' + (sizeQ.trim() ? ' on' : '')} disabled={!sizeQ.trim()} onClick={addCustomSize}>
+                    <Plus size={14} />{pf.sizeAddCustom}
+                  </button>
+                </div>
+                {customSizes.length > 0 && (
+                  <div className="pf-clr-picked">
+                    {customSizes.map((cs) => (
+                      <button key={cs} type="button" className="pf-clr-tag" onClick={() => setCustomSizes((p) => p.filter((x) => x !== cs))}>
+                        <b>{cs}</b><X size={11} />
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="pf-note"><Info size={14} />{pf.oneSizeNote}</div>
+            )}
+          </>
         ) : (
           <>
-            <div className="pf-seg" role="tablist">
-              {sysList.map((s) => <button type="button" key={s} className={activeSys === s ? 'on' : ''} onClick={() => setSys(s)}>{SYS_LABEL[s]}</button>)}
-            </div>
+            {sysList.length > 1 && (
+              <div className="pf-seg" role="tablist">
+                {sysList.map((s) => <button type="button" key={s} className={activeSys === s ? 'on' : ''} onClick={() => setSys(s)}>{SYS_LABEL[s]}</button>)}
+              </div>
+            )}
 
-            {/* Поиск по размерам + ввод своего размера */}
             <div className="pf-sz-custom-bar">
               <div className="pf-clr-search">
                 <Search size={14} />
@@ -1260,14 +1451,13 @@ export function ProductForm({ edit }: { edit?: Product }) {
                     onClick={() => toggleSizeRow(r)}
                   >
                     <b>{sizeLabel(r)}</b>
-                    <small>{equivalents(table, r, activeSys)}</small>
+                    <small>{equivalents(table, r, activeSys) || table.rows[r].cm || ''}</small>
                     {on && <span className="tick"><Check size={10} strokeWidth={3} /></span>}
                   </button>
                 )
               })}
             </div>
 
-            {/* Обучающая кнопка и интерактивная таблица-урок */}
             <button type="button" className={'pf-lesson-btn' + (showTable ? ' open' : '')} onClick={() => setShowTable(!showTable)}>
               <span className="pf-lesson-ic"><BookOpen size={15} /></span>
               <span className="pf-lesson-t">
@@ -1308,7 +1498,7 @@ export function ProductForm({ edit }: { edit?: Product }) {
             )}
 
             <div className="pf-other">
-              {pf.otherTables} {SIZE_TABLES.filter((tb) => tb.id !== table.id).map((tb) => <span key={tb.id}>{tableName(tb.id)}</span>)}
+              {pf.otherTables} {SIZE_TABLES.filter((tb) => tb.id !== table.id).slice(0, 6).map((tb) => <span key={tb.id}>{tableName(tb.id)}</span>)}
             </div>
             {tried && errs.size && <div className="pf-err"><CircleAlert size={12} />{errs.size}</div>}
           </>
@@ -1330,7 +1520,7 @@ export function ProductForm({ edit }: { edit?: Product }) {
     </>
   )
 
-  /* ---------- 5. ЦЕНА (₺ TRY / $ USD), ОСТАТКИ И ЛОГИСТИКА С КОРОБКОЙ (СМ / ММ) ---------- */
+  /* ---------- 5. ЦЕНА (₺ TRY / $ USD + КАЛЬКУЛЯТОР ЦЕНЫ ЗА 1 ГРАММ ДЛЯ ЗОЛОТА), ОСТАТКИ И КОРОБКА ---------- */
   const applyBulk = (val: number) => {
     setBulk(val)
     setStock(Object.fromEntries(variants.map((v) => [v.key, val])))
@@ -1338,9 +1528,55 @@ export function ProductForm({ edit }: { edit?: Product }) {
     nav.toast(`${val} ${t.pieces} · ${t.apply}`)
   }
 
+  const applyGramRate = () => {
+    const rate = num(gramRateInput)
+    if (rate > 0 && gramsN > 0) {
+      setPrice(String(Math.round(rate * gramsN)))
+      setTried(false)
+      nav.toast(`${jewelGrams} ${ru ? 'г' : 'gr'} × ${fmt(rate)} ${sym} = ${fmt(Math.round(rate * gramsN))} ${sym}`)
+    }
+  }
+
   const StepPrice = (
     <>
       <Section icon={<Wallet size={16} />} title={pf.priceTitle} sub={pf.priceSub}>
+        {/* Умный калькулятор цены по граммам для золота/украшений */}
+        {isJewelry && (
+          <div className="pf-gram-calc">
+            <div className="pf-gc-h">
+              <Calculator size={14} />
+              <b>{ru ? 'Калькулятор по граммам золота' : 'Gram altın fiyat hesaplayıcı'}</b>
+              {gramsN > 0 && <span>{jewelGrams} {ru ? 'г' : 'gr'}</span>}
+            </div>
+            {gramsN > 0 ? (
+              <div className="pf-gc-row">
+                <div className="pf-box-inp" style={{ flex: 1 }}>
+                  <input
+                    inputMode="decimal"
+                    placeholder={ru ? `Цена за 1 г (${sym})` : `1 gr fiyatı (${sym})`}
+                    value={gramRateInput}
+                    onChange={(e) => setGramRateInput(e.target.value.replace(/[^\d.,]/g, ''))}
+                  />
+                  <span>{sym}/{ru ? 'г' : 'gr'}</span>
+                </div>
+                <button type="button" className="pf-gc-btn" onClick={applyGramRate}>
+                  {ru ? 'Рассчитать' : 'Hesapla'}
+                </button>
+              </div>
+            ) : (
+              <button type="button" className="pf-gc-go" onClick={() => go(2)}>
+                {ru ? 'Укажите вес в граммах на шаге «Описание» →' : '«Bilgiler» adımında gramaj girin →'}
+              </button>
+            )}
+            {pricePerGram > 0 && (
+              <div className="pf-gc-res">
+                {ru ? 'Итоговая цена за 1 грамм:' : 'Gram başı fiyat:'}{' '}
+                <b>≈ {fmt(Math.round(pricePerGram))} {sym} / {ru ? 'г' : 'gr'}</b>
+              </div>
+            )}
+          </div>
+        )}
+
         <div className="pf-price-row">
           <div className="pf-input big">
             <input inputMode="decimal" placeholder="0" value={price} onChange={(e) => { setPrice(e.target.value.replace(/[^\d.,]/g, '')); setTried(false) }} />
@@ -1427,7 +1663,6 @@ export function ProductForm({ edit }: { edit?: Product }) {
         <div className="pf-hint" style={{ marginTop: 8 }}>{pf.skuHint}</div>
       </Section>
 
-      {/* Логистика: переведённые единицы, габариты коробки (см / мм) и пояснение Мин./Макс. заказа */}
       <Section icon={<Truck size={16} />} title={pf.logisticsTitle}>
         <div className="pf-row2">
           <Field label={pf.stockUnit}>
@@ -1448,11 +1683,10 @@ export function ProductForm({ edit }: { edit?: Product }) {
             </button>
           </Field>
           <Field label={pf.weight}>
-            <div className="pf-input"><input inputMode="decimal" placeholder="0,5" value={weight} onChange={(e) => setWeight(e.target.value.replace(/[^\d.,]/g, ''))} /></div>
+            <div className="pf-input"><input inputMode="decimal" placeholder={profile.defaultBox.weightHint} value={weight} onChange={(e) => setWeight(e.target.value.replace(/[^\d.,]/g, ''))} /></div>
           </Field>
         </div>
 
-        {/* Габариты коробки для карго (Д × Ш × В в см или мм) */}
         <div className="pf-box-card">
           <div className="pf-box-h">
             <div className="pf-box-t">
@@ -1471,21 +1705,21 @@ export function ProductForm({ edit }: { edit?: Product }) {
             <div>
               <label>{pf.boxLen}</label>
               <div className="pf-box-inp">
-                <input inputMode="numeric" placeholder={boxUnit === 'cm' ? '30' : '300'} value={boxL} onChange={(e) => setBoxL(e.target.value.replace(/[^\d.,]/g, ''))} />
+                <input inputMode="numeric" placeholder={profile.defaultBox.l} value={boxL} onChange={(e) => setBoxL(e.target.value.replace(/[^\d.,]/g, ''))} />
                 <span>{boxUnit === 'cm' ? pf.unitCm : pf.unitMm}</span>
               </div>
             </div>
             <div>
               <label>{pf.boxWid}</label>
               <div className="pf-box-inp">
-                <input inputMode="numeric" placeholder={boxUnit === 'cm' ? '20' : '200'} value={boxW} onChange={(e) => setBoxW(e.target.value.replace(/[^\d.,]/g, ''))} />
+                <input inputMode="numeric" placeholder={profile.defaultBox.w} value={boxW} onChange={(e) => setBoxW(e.target.value.replace(/[^\d.,]/g, ''))} />
                 <span>{boxUnit === 'cm' ? pf.unitCm : pf.unitMm}</span>
               </div>
             </div>
             <div>
               <label>{pf.boxHei}</label>
               <div className="pf-box-inp">
-                <input inputMode="numeric" placeholder={boxUnit === 'cm' ? '10' : '100'} value={boxH} onChange={(e) => setBoxH(e.target.value.replace(/[^\d.,]/g, ''))} />
+                <input inputMode="numeric" placeholder={profile.defaultBox.h} value={boxH} onChange={(e) => setBoxH(e.target.value.replace(/[^\d.,]/g, ''))} />
                 <span>{boxUnit === 'cm' ? pf.unitCm : pf.unitMm}</span>
               </div>
             </div>
@@ -1503,7 +1737,6 @@ export function ProductForm({ edit }: { edit?: Product }) {
           <Field label={pf.maxOrder}><Stepper value={maxQ} onChange={(n) => setMaxQ(Math.max(minQ, n))} /></Field>
         </div>
 
-        {/* Понятное объяснение для продавцов: зачем нужны Мин. и Макс. заказ */}
         <div className="pf-minmax-info">
           <div className="pf-mmi-h"><HelpCircle size={14} /><b>{pf.minMaxHelpTitle}</b></div>
           <p>• {pf.minHelpText}</p>
@@ -1513,35 +1746,81 @@ export function ProductForm({ edit }: { edit?: Product }) {
     </>
   )
 
-  /* ---------- 6. ПРЕВЬЮ ---------- */
+  /* ---------- 6. РЕАЛИСТИЧНАЯ ВИТРИННАЯ КАРТОЧКА ТОВАРА (ПРЕВЬЮ ПОКУПАТЕЛЯ) ---------- */
   const StepPrev = (
     <>
       <div className="cat-sec-h"><Eye size={13} /><span>{pf.previewTitle}</span></div>
-      <div className="pf-pv">
-        <div className="pf-pv-img">
-          {photos[0] ? <img src={photos[0]} alt="Preview" style={{ objectPosition: 'center top' }} /> : <ImagePlus size={30} />}
-          {discN > 0 && <span className="pf-pv-disc">−{discN}%</span>}
-          {photos.length > 1 && <span className="pf-pv-cnt"><Images size={10} />{photos.length}</span>}
-        </div>
-        <div className="pf-pv-b">
-          <div className="pf-pv-price">
-            <b>{priceN ? `${fmt(Math.round(final * 100) / 100)} ${sym}` : pf.noPrice}</b>
-            {discN > 0 && priceN > 0 && <s>{fmt(priceN)} {sym}</s>}
+
+      <div className="pf-mkt-card">
+        <div className="pf-mkt-media">
+          {photos[0] ? (
+            <img src={photos[0]} alt="Preview" />
+          ) : (
+            <div className="pf-mkt-empty"><ImagePlus size={34} /><span>3:4</span></div>
+          )}
+          <div className="pf-mkt-top-badges">
+            {discN > 0 && <span className="pf-mkt-disc">−{discN}%</span>}
+            {isJewelry && gramsN > 0 && (
+              <span className="pf-mkt-gold"><Gem size={11} />{jewelGrams} {ru ? 'г' : 'gr'}</span>
+            )}
           </div>
-          <div className="pf-pv-name">{brand && brand !== pf.brandless && <b>{brand} / </b>}{name || pf.noName}</div>
-          {cat && <div className="pf-pv-cat">{catPathLabel(cat)}</div>}
-          {selColors.length > 0 && (
-            <div className="pf-pv-colors">
-              {selColors.map((c) => <i key={c} style={{ background: hexOfColor(c) }} />)}
+          <div className="pf-mkt-ic-col" aria-hidden>
+            <span><Heart size={15} /></span>
+            <span><Share2 size={15} /></span>
+          </div>
+          {photos.length > 1 && (
+            <div className="pf-mkt-dots" aria-hidden>
+              {photos.slice(0, 5).map((_, idx) => <i key={idx} className={idx === 0 ? 'on' : ''} />)}
             </div>
           )}
+        </div>
+
+        <div className="pf-mkt-body">
+          <div className="pf-mkt-price-row">
+            <div>
+              <b className="pf-mkt-price">{priceN ? `${fmt(Math.round(final * 100) / 100)} ${sym}` : pf.noPrice}</b>
+              {discN > 0 && priceN > 0 && <s className="pf-mkt-old">{fmt(priceN)} {sym}</s>}
+              {priceN > 0 && <span className="pf-mkt-conv">≈ {fmtConv(convertedVal)} {convertedSym}</span>}
+            </div>
+            <span className="pf-mkt-rate"><Star size={12} fill="#f5a623" color="#f5a623" />5.0</span>
+          </div>
+
+          <div className="pf-mkt-title">
+            {brand && brand !== pf.brandless && <b>{brand} · </b>}
+            {name || pf.noName}
+          </div>
+          {cat && <div className="pf-mkt-cat">{catPathLabel(cat)}</div>}
+
+          {/* Спец-чипы для ювелирных изделий */}
+          {isJewelry && (
+            <div className="pf-mkt-specs">
+              <span>{activeMetal}</span>
+              {gramsN > 0 && <span>{jewelGrams} {ru ? 'г' : 'gr'}</span>}
+              {jewelStoneIdx > 0 && <span>{activeStone}{jewelCarat ? ` ${jewelCarat} ct` : ''}</span>}
+              {jewelHallmark && <span className="ok"><ShieldCheck size={10} />{ru ? 'Клеймо' : 'Damgalı'}</span>}
+              {jewelGiftBox && <span className="ok"><Gift size={10} />{ru ? 'Коробка' : 'Kutulu'}</span>}
+            </div>
+          )}
+
+          {selColors.length > 0 && (
+            <div className="pf-mkt-colors">
+              {selColors.map((c) => (
+                <span key={c}><i style={{ background: hexOfColor(c) }} />{colorLabel(c)}</span>
+              ))}
+            </div>
+          )}
+
           {sizeItems.length > 0 && table.id !== 'one' && (
-            <div className="pf-pv-sizes">
+            <div className="pf-mkt-sizes">
               {sizeItems.slice(0, 6).map((sz) => <span key={sz.id}>{sz.label}</span>)}
               {sizeItems.length > 6 && <span>+{sizeItems.length - 6}</span>}
             </div>
           )}
-          {tagOn.length > 0 && <div className="pf-pv-tags">{tagOn.map((tg) => <span key={tg}>{pf.tagNames[tg] ?? tg}</span>)}</div>}
+
+          <div className="pf-mkt-cta" aria-hidden>
+            <ShoppingCart size={15} />
+            <span>{ru ? 'В корзину · JJ Market' : 'Sepete ekle · JJ Market'}</span>
+          </div>
         </div>
       </div>
 
