@@ -3003,3 +3003,92 @@ input, textarea { outline: none; }
   font-size: 13.5px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 7px;
   box-shadow: 0 6px 16px rgba(154, 38, 238, .26);
 }
+
+/* ---------- 3-level Jewelry segment cards (Золото / Бриллианты / Серебро 925 / Бижутерия) ---------- */
+.cat-parent-nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.cat-root-pill {
+  height: 28px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: #f3f2f6;
+  color: #6b6b76;
+  font-size: 11.5px;
+  font-weight: 700;
+  border: 1px solid #e7e5ee;
+}
+.cat-seg-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 10px;
+}
+.cat-seg-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+  padding: 13px 12px 12px;
+  border-radius: 16px;
+  background: #fff;
+  border: 1.5px solid #eceaf2;
+  box-shadow: 0 2px 8px rgba(24, 20, 42, .04);
+  transition: transform .15s, border-color .15s, box-shadow .15s;
+}
+.cat-seg-card:active { transform: scale(.97); }
+.cat-seg-card.on {
+  border-color: #ae33ff;
+  background: #fcf8ff;
+  box-shadow: 0 6px 18px rgba(174, 51, 255, .12);
+}
+.cat-seg-top {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 9px;
+}
+.cat-seg-ic {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  flex: none;
+}
+.cat-seg-cnt {
+  min-width: 24px;
+  height: 22px;
+  padding: 0 7px;
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.cat-seg-title {
+  font-size: 15px;
+  font-weight: 800;
+  color: #1b1b1f;
+  letter-spacing: -.2px;
+  line-height: 1.2;
+}
+.cat-seg-sub {
+  margin: 4px 0 10px;
+  font-size: 11.5px;
+  line-height: 1.35;
+  color: #777682;
+  flex: 1;
+}
+.cat-seg-go {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 11.5px;
+  font-weight: 700;
+}

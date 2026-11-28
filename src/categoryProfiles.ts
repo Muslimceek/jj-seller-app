@@ -68,11 +68,40 @@ export const FULL_CATEGORIES: Cat[] = [
   {
     name: 'Takılar',
     children: [
-      'Kolye', 'Yüzük', 'Alyans', 'Tektaş & Baget Yüzük', 'Küpe', 'Bileklik',
-      'Bilezik & Kelepçe', 'Zincir', 'Kolye Ucu', 'Takı Seti', 'Düğün Seti',
-      'Broş', 'Halhal', 'Piercing', 'Erkek Takı & Kol Düğmesi',
-      'Çeyrek & Gram Altın', '925 Gümüş Takı', 'Bijuteri',
-    ].map(leaf),
+      {
+        name: 'Altın',
+        children: [
+          'Altın Yüzük', 'Altın Alyans', 'Altın Kolye', 'Altın Zincir',
+          'Altın Küpe', 'Altın Bileklik', 'Altın Bilezik & Kelepçe', 'Altın Kolye Ucu',
+          'Altın Takı Seti', 'Altın Düğün Seti', 'Altın Halhal', 'Altın Piercing',
+          'Çocuk Altın Takıları', 'Çeyrek & Gram Altın',
+        ].map(leaf),
+      },
+      {
+        name: 'Pırlanta',
+        children: [
+          'Tektaş Pırlanta Yüzük', 'Baget Pırlanta Yüzük', 'Beştaş & Tamtur Yüzük',
+          'Pırlanta Alyans', 'Pırlanta Kolye', 'Pırlanta Küpe',
+          'Pırlanta Su Yolu Bileklik', 'Pırlanta Düğün Seti', 'Renkli Taşlı Pırlanta',
+        ].map(leaf),
+      },
+      {
+        name: 'Gümüş',
+        children: [
+          'Gümüş Yüzük', 'Gümüş Alyans', 'Gümüş Kolye', 'Gümüş Zincir',
+          'Gümüş Küpe', 'Gümüş Bileklik', 'Gümüş Takı Seti',
+          'Erkek Gümüş Yüzük & Tesbih', 'Gümüş Halhal', 'Gümüş Piercing', 'Gümüş Broş & Kol Düğmesi',
+        ].map(leaf),
+      },
+      {
+        name: 'Bijuteri',
+        children: [
+          'Bijuteri Küpe', 'Bijuteri Kolye & Choker', 'Bijuteri Yüzük', 'Bijuteri Bileklik & Kelepçe',
+          'Çelik Takı (316L)', 'İnci & Doğal Taş Takı', 'Bijuteri Takı Seti', 'Broş & Yaka İğnesi',
+          'Saç Aksesuarı (Taç / Toka)', 'Bijuteri Halhal', 'Ear Cuff & Klips Küpe', 'Erkek Çelik & Deri Bileklik',
+        ].map(leaf),
+      },
+    ],
   },
   {
     name: 'Güzellik ve Bakım',
@@ -217,8 +246,59 @@ export const CAT_RU_MAP: Record<string, string> = {
   'Güneş Gözlüğü': 'Солнцезащитные очки',
   'Şapka & Bere': 'Шапки и кепки',
   'Saat': 'Часы',
-  // Takılar
+  // Takılar (3 уровня: Золото, Бриллианты, Серебро 925, Бижутерия)
   'Takılar': 'Украшения',
+  'Altın': 'Золото',
+  'Altın Yüzük': 'Золотые кольца',
+  'Altın Alyans': 'Золотые обручальные кольца',
+  'Altın Kolye': 'Золотые колье',
+  'Altın Zincir': 'Золотые цепочки',
+  'Altın Küpe': 'Золотые серьги',
+  'Altın Bileklik': 'Золотые браслеты',
+  'Altın Bilezik & Kelepçe': 'Золотые бэнглы и жёсткие браслеты',
+  'Altın Kolye Ucu': 'Золотые кулоны и подвески',
+  'Altın Takı Seti': 'Золотые комплекты',
+  'Altın Düğün Seti': 'Золотые свадебные наборы',
+  'Altın Halhal': 'Золотые браслеты на ногу',
+  'Altın Piercing': 'Золотой пирсинг',
+  'Çocuk Altın Takıları': 'Детские золотые украшения',
+  'Çeyrek & Gram Altın': 'Золотые монеты и слитки (Çeyrek / Gram)',
+  'Pırlanta': 'Бриллианты',
+  'Tektaş Pırlanta Yüzük': 'Кольца Солитёр с бриллиантом',
+  'Baget Pırlanta Yüzük': 'Кольца Багет с бриллиантом',
+  'Beştaş & Tamtur Yüzük': 'Кольца-дорожки и Beştaş',
+  'Pırlanta Alyans': 'Обручальные кольца с бриллиантами',
+  'Pırlanta Kolye': 'Колье и подвески с бриллиантом',
+  'Pırlanta Küpe': 'Серьги с бриллиантами',
+  'Pırlanta Su Yolu Bileklik': 'Теннисные браслеты (Su Yolu)',
+  'Pırlanta Düğün Seti': 'Свадебные наборы с бриллиантами',
+  'Renkli Taşlı Pırlanta': 'Бриллианты с изумрудом, сапфиром, рубином',
+  'Gümüş': 'Серебро 925',
+  'Gümüş Yüzük': 'Серебряные кольца',
+  'Gümüş Alyans': 'Серебряные обручальные кольца',
+  'Gümüş Kolye': 'Серебряные колье и кулоны',
+  'Gümüş Zincir': 'Серебряные цепочки',
+  'Gümüş Küpe': 'Серебряные серьги',
+  'Gümüş Bileklik': 'Серебряные браслеты',
+  'Gümüş Takı Seti': 'Серебряные комплекты',
+  'Erkek Gümüş Yüzük & Tesbih': 'Мужские перстни и чётки',
+  'Gümüş Halhal': 'Серебряные браслеты на ногу',
+  'Gümüş Piercing': 'Серебряный пирсинг',
+  'Gümüş Broş & Kol Düğmesi': 'Серебряные броши и запонки',
+  'Bijuteri': 'Бижутерия',
+  'Bijuteri Küpe': 'Серьги (бижутерия)',
+  'Bijuteri Kolye & Choker': 'Колье и чокеры',
+  'Bijuteri Yüzük': 'Кольца (бижутерия)',
+  'Bijuteri Bileklik & Kelepçe': 'Браслеты и каффы',
+  'Çelik Takı (316L)': 'Украшения из медстали 316L',
+  'İnci & Doğal Taş Takı': 'Жемчуг и натуральные камни',
+  'Bijuteri Takı Seti': 'Наборы бижутерии',
+  'Broş & Yaka İğnesi': 'Броши и значки',
+  'Saç Aksesuarı (Taç / Toka)': 'Украшения для волос (ободки, заколки)',
+  'Bijuteri Halhal': 'Браслеты на ногу (бижутерия)',
+  'Ear Cuff & Klips Küpe': 'Каффы и клипсы без прокола',
+  'Erkek Çelik & Deri Bileklik': 'Мужские браслеты (сталь / кожа)',
+  // Обратная совместимость со старыми названиями
   'Kolye': 'Колье и ожерелья',
   'Yüzük': 'Кольца',
   'Alyans': 'Обручальные кольца',
@@ -234,9 +314,7 @@ export const CAT_RU_MAP: Record<string, string> = {
   'Halhal': 'Браслеты на ногу (Анклеты)',
   'Piercing': 'Пирсинг',
   'Erkek Takı & Kol Düğmesi': 'Мужские украшения и запонки',
-  'Çeyrek & Gram Altın': 'Золотые монеты и слитки',
   '925 Gümüş Takı': 'Серебро 925 пробы',
-  'Bijuteri': 'Бижутерия',
   // Güzellik ve Bakım
   'Güzellik ve Bakım': 'Красота и уход',
   'Cilt Bakımı': 'Уход за кожей',
@@ -319,10 +397,53 @@ export type CatDomain =
   | 'auto'
   | 'cleaning'
 
+export type JewelrySegment = 'gold' | 'diamond' | 'silver' | 'bijuteri'
+
+export const JEWELRY_SEGMENT_META: Record<
+  string,
+  { seg: JewelrySegment; color: string; bg: string; sub: { ru: string; tr: string } }
+> = {
+  Altın: {
+    seg: 'gold',
+    color: '#b45309',
+    bg: '#fef3c7',
+    sub: { ru: '585 · 750 · 916 · граммы и проба', tr: '14K · 18K · 22K · gram ve ayar' },
+  },
+  Pırlanta: {
+    seg: 'diamond',
+    color: '#0284c7',
+    bg: '#e0f2fe',
+    sub: { ru: 'Солитёр · Багет · караты и сертификат', tr: 'Tektaş · Baget · karat ve sertifika' },
+  },
+  Gümüş: {
+    seg: 'silver',
+    color: '#475569',
+    bg: '#eef2f6',
+    sub: { ru: 'Проба 925 · родий · перстни и наборы', tr: '925 ayar · rodyum · yüzük ve setler' },
+  },
+  Bijuteri: {
+    seg: 'bijuteri',
+    color: '#9333ea',
+    bg: '#f5e8ff',
+    sub: { ru: 'Медсталь 316L · жемчуг · заколки · каффы', tr: '316L çelik · inci · toka · aksesuar' },
+  },
+}
+
+export function jewelrySegment(path: string): JewelrySegment | null {
+  const parts = path.split(' > ')
+  const p = path.toLowerCase()
+  if (parts.includes('Pırlanta') || /pırlanta|tektaş|baget|beştaş|tamtur|su yolu/.test(p)) return 'diamond'
+  if (parts.includes('Gümüş') || /gümüş/.test(p)) return 'silver'
+  if (parts.includes('Bijuteri') || /bijuteri|çelik takı|saç aksesuar|ear cuff|klips/.test(p)) return 'bijuteri'
+  if (parts.includes('Altın') || /altın|çeyrek/.test(p)) return 'gold'
+  if (parts[0] === 'Takılar') return 'gold'
+  return null
+}
+
 export function domainForCategory(path: string): CatDomain {
   const root = (path.split(' > ')[0] || '').toLowerCase()
   const p = path.toLowerCase()
-  if (root.includes('takı') || /kolye|yüzük|alyans|küpe|bileklik|bilezik|zincir|altın|gümüş|bijuteri|broş|halhal|piercing/.test(p)) return 'jewelry'
+  if (root.includes('takı') || /kolye|yüzük|alyans|küpe|bileklik|bilezik|zincir|altın|gümüş|pırlanta|bijuteri|broş|halhal|piercing/.test(p)) return 'jewelry'
   if (root.includes('ayakkab') || /loafer|babet|sneaker|bot|çizme|topuklu|sandalet|terlik|mokasen/.test(p)) return 'shoes'
   if (root.includes('çanta') || /cüzdan|kemer|şal|gözlük|saat|valiz|şapka/.test(p)) return 'bags'
   if (root.includes('güzellik') || /parfüm|makyaj|cilt|saç|kozmetik/.test(p)) return 'beauty'
@@ -344,6 +465,10 @@ export interface SmartAttr {
 
 export interface SmartProfile {
   domain: CatDomain
+  jewelrySeg?: JewelrySegment
+  usesPreciousPassport?: boolean
+  defaultMetalIdx?: number
+  defaultStoneIdx?: number
   badge: string
   photoTip: string
   namePh: string
@@ -377,18 +502,139 @@ export function getSmartProfile(path: string, lang: Lang): SmartProfile {
   const ru = lang === 'ru'
 
   if (domain === 'jewelry') {
+    const seg = jewelrySegment(path) ?? 'gold'
+
+    if (seg === 'bijuteri') {
+      return {
+        domain,
+        jewelrySeg: 'bijuteri',
+        usesPreciousPassport: false,
+        defaultMetalIdx: 8,
+        defaultStoneIdx: 2,
+        badge: ru ? 'Бижутерия · Материал и стиль' : 'Bijuteri · Materyal ve stil',
+        photoTip: ru
+          ? 'Сфотографируйте украшение крупно, на модели (рука/ухо/шея) и в упаковке (3:4)'
+          : 'Takıyı yakından, model üzerinde (kulak/boyun/el) ve paketinde çekin (3:4)',
+        namePh: ru ? 'Напр: Серьги-кольца из медстали 316L с позолотой, не темнеют' : 'Örn: 316L Paslanmaz Çelik Altın Kaplama Halka Küpe',
+        descPh: ru
+          ? 'Укажите материал (медсталь 316L, позолота, жемчуг), гипоаллергенность, застёжку и стиль…'
+          : 'Materyal (316L çelik, kaplama, inci), kararma yapmama özelliği, kilit tipi ve stili yazın…',
+        attrs: [
+          { k: 'mat', l: ru ? 'Материал' : 'Materyal', opts: ru ? ['Медсталь 316L', 'Позолота 18K', 'Ювелирный сплав', 'Латунь', 'Жемчуг', 'Натуральный камень', 'Акрил / Смола', 'Кожа'] : ['316L Çelik', '18K Kaplama', 'Pirinç / Alaşım', 'İnci', 'Doğal taş', 'Akrilik', 'Deri'], multi: true, filter: true },
+          { k: 'care', l: ru ? 'Свойства' : 'Özellik', opts: ru ? ['Не темнеет', 'Водостойкая', 'Гипоаллергенно', 'Без никеля'] : ['Kararma yapmaz', 'Suya dayanıklı', 'Hipoalerjenik', 'Nikel içermez'], multi: true, filter: true },
+          { k: 'style', l: ru ? 'Стиль' : 'Stil', opts: ru ? ['Минимализм', 'Повседневный', 'Вечерний', 'Винтаж / Бохо', 'Офисный'] : ['Minimal', 'Günlük', 'Abiye', 'Vintage / Bohem', 'Klasik'], filter: true },
+          { k: 'clasp', l: ru ? 'Застёжка' : 'Kilit / Klips', opts: ru ? ['Гвоздик (пусет)', 'Английский', 'Конго', 'Карабин', 'Клипса (без прокола)', 'Заколка / Краб'] : ['Çivili / Vidalı', 'İngiliz kilit', 'Halka', 'Papağan kilit', 'Klipsli (deliksiz)', 'Toka'] },
+        ],
+        tags: [
+          { key: 'steel316', label: ru ? 'Медсталь 316L' : '316L Çelik', color: '#475569', bg: '#F1F5F9' },
+          { key: 'waterproof', label: ru ? 'Не темнеет' : 'Kararma yapmaz', color: '#0369A1', bg: '#E0F2FE' },
+          { key: 'hypo', label: ru ? 'Гипоаллергенно' : 'Hipoalerjenik', color: '#15803D', bg: '#DCFCE7' },
+          { key: 'giftbox', label: ru ? 'Подарочная упаковка' : 'Hediye paketi', color: '#BE185D', bg: '#FCE7F3' },
+          { key: 'handmade', label: ru ? 'Ручная работа' : 'El yapımı', color: '#7E22CE', bg: '#F3E8FF' },
+        ],
+        priorityColors: [
+          [ru ? 'Золотой' : 'Gold / Altın Renk', '#E5B84B'],
+          [ru ? 'Серебряный' : 'Gümüş Renk', '#CFD6E0'],
+          [ru ? 'Розовое золото' : 'Rose Gold', '#E5A198'],
+          [ru ? 'Жемчужный' : 'İnci Beyaz', '#F7F4EE'],
+          [ru ? 'Чёрный' : 'Siyah', '#23262D'],
+          [ru ? 'Разноцветный' : 'Çok Renkli', '#C084FC'],
+        ],
+        defaultBox: { l: '10', w: '10', h: '4', unit: 'cm', weightHint: '0,06' },
+      }
+    }
+
+    if (seg === 'diamond') {
+      return {
+        domain,
+        jewelrySeg: 'diamond',
+        usesPreciousPassport: true,
+        defaultMetalIdx: 5,
+        defaultStoneIdx: 1,
+        badge: ru ? 'Бриллианты · Караты и сертификат' : 'Pırlanta · Karat ve sertifika',
+        photoTip: ru
+          ? 'Сделайте макро-фото камня при ярком свете, посадку на пальце, клеймо и сертификат GIA / HRD (3:4)'
+          : 'Taşın ışık altındaki makro çekimi, parmakta duruşu, ayar damgası ve sertifikayı ekleyin (3:4)',
+        namePh: ru ? 'Напр: Кольцо Солитёр с бриллиантом 0.30 ct, белое золото 585' : 'Örn: 0.30 Karat Tektaş Pırlanta Yüzük, 14K Beyaz Altın',
+        descPh: ru
+          ? 'Укажите каратность (ct), цвет (F-G), чистоту (VS/SI), огранку, вес золота и наличие сертификата…'
+          : 'Karat (ct), renk (F-G), berraklık (VS/SI), kesim, altın gramajı ve sertifika bilgilerini yazın…',
+        attrs: [
+          { k: 'cut', l: ru ? 'Огранка камня' : 'Taş kesimi', opts: ru ? ['Круглая (Бриллиант)', 'Багет', 'Принцесса', 'Овал', 'Груша', 'Изумрудная'] : ['Yuvarlak', 'Baget', 'Prenses', 'Oval', 'Damla', 'Zümrüt'], filter: true },
+          { k: 'clarity', l: ru ? 'Цвет / Чистота' : 'Renk / Berraklık', opts: ['D-E / VVS', 'F-G / VS', 'F-G / SI', 'H-I / SI'], filter: true },
+          { k: 'cert', l: ru ? 'Сертификат' : 'Sertifika', opts: ru ? ['GIA', 'HRD Antwerp', 'Фирменный сертификат'] : ['GIA', 'HRD Antwerp', 'Marka sertifikası'], filter: true },
+          { k: 'origin', l: ru ? 'Производство' : 'Menşei', opts: ru ? ['Турция (Стамбул · Гранд-Базар)', 'Турция', 'Италия', 'Ручная работа'] : ['Türkiye (İstanbul · Kapalıçarşı)', 'Türkiye', 'İtalya', 'El yapımı'] },
+        ],
+        tags: [
+          { key: 'cert', label: ru ? 'Сертификат GIA/HRD' : 'GIA / HRD Sertifikalı', color: '#0369A1', bg: '#E0F2FE' },
+          { key: 'gold585', label: ru ? 'Золото 585 / 750' : '14K / 18K Altın', color: '#B45309', bg: '#FEF3C7' },
+          { key: 'hallmark', label: ru ? 'Клеймо пробы' : 'Ayar damgalı', color: '#7E22CE', bg: '#F3E8FF' },
+          { key: 'giftbox', label: ru ? 'Премиум-футляр' : 'Özel mücevher kutusu', color: '#BE185D', bg: '#FCE7F3' },
+        ],
+        priorityColors: [
+          [ru ? 'Белое золото' : 'Beyaz Altın', '#E8ECF2'],
+          [ru ? 'Жёлтое золото' : 'Sarı Altın', '#E5B84B'],
+          [ru ? 'Розовое золото' : 'Rose Altın', '#E5A198'],
+          [ru ? 'Биколор' : 'İki Renk Altın', '#DFC58A'],
+        ],
+        defaultBox: { l: '8', w: '8', h: '5', unit: 'cm', weightHint: '0,08' },
+      }
+    }
+
+    if (seg === 'silver') {
+      return {
+        domain,
+        jewelrySeg: 'silver',
+        usesPreciousPassport: true,
+        defaultMetalIdx: 4,
+        defaultStoneIdx: 0,
+        badge: ru ? 'Серебро 925 · Вес и покрытие' : '925 Gümüş · Gram ve kaplama',
+        photoTip: ru
+          ? 'Снимите изделие крупно, пробу 925, посадку на модели и подарочную коробочку (3:4)'
+          : 'Ürünü yakından, 925 ayar damgasını, modelde duruşunu ve hediye kutusunu çekin (3:4)',
+        namePh: ru ? 'Напр: Серебряное кольцо 925 пробы с родированием, 4.2 г' : 'Örn: 925 Ayar Rodyum Kaplama Gümüş Yüzük, 4.2 gr',
+        descPh: ru
+          ? 'Опишите покрытие (родий, позолота, чернение), вес в граммах, камни и уход за серебром 925…'
+          : 'Kaplama (rodyum, altın kaplama, oksit), gramaj, taş detayı ve 925 gümüş bakımını yazın…',
+        attrs: [
+          { k: 'finish', l: ru ? 'Покрытие' : 'Kaplama', opts: ru ? ['Родирование (блеск)', 'Позолота 18K', 'Розовая позолота', 'Чернение (оксид)', 'Без покрытия'] : ['Rodyum kaplama', 'Altın kaplama', 'Rose kaplama', 'Oksitli (eskitme)', 'Kaplamasız'], filter: true },
+          { k: 'gender', l: ru ? 'Для кого' : 'Cinsiyet', opts: ru ? ['Женские', 'Мужские', 'Унисекс', 'Детские'] : ['Kadın', 'Erkek', 'Unisex', 'Çocuk'], filter: true },
+          { k: 'origin', l: ru ? 'Производство' : 'Menşei', opts: ru ? ['Турция (Стамбул)', 'Турция (Мардин · Телькяри)', 'Италия', 'Ручная работа'] : ['Türkiye (İstanbul)', 'Türkiye (Mardin Telkari)', 'İtalya', 'El yapımı'] },
+        ],
+        tags: [
+          { key: 'hallmark', label: ru ? 'Проба 925' : '925 Ayar damgalı', color: '#475569', bg: '#F1F5F9' },
+          { key: 'cert', label: ru ? 'Сертификат' : 'Sertifikalı', color: '#15803D', bg: '#DCFCE7' },
+          { key: 'giftbox', label: ru ? 'Подарочная коробка' : 'Hediye kutulu', color: '#BE185D', bg: '#FCE7F3' },
+          { key: 'handmade', label: ru ? 'Ручная работа' : 'El yapımı', color: '#4338CA', bg: '#E0E7FF' },
+        ],
+        priorityColors: [
+          [ru ? 'Серебро 925' : '925 Gümüş', '#CFD6E0'],
+          [ru ? 'Белый родий' : 'Beyaz Rodyum', '#E8ECF2'],
+          [ru ? 'Чёрный родий' : 'Siyah Rodyum', '#2C2F36'],
+          [ru ? 'Позолота' : 'Altın Kaplama', '#E5B84B'],
+          [ru ? 'Розовая позолота' : 'Rose Kaplama', '#E5A198'],
+        ],
+        defaultBox: { l: '8', w: '8', h: '4', unit: 'cm', weightHint: '0,05' },
+      }
+    }
+
+    // Gold (Altın)
     return {
       domain,
-      badge: ru ? 'Ювелирный режим · Граммы и проба' : 'Mücevher modu · Gram ve ayar',
+      jewelrySeg: 'gold',
+      usesPreciousPassport: true,
+      defaultMetalIdx: 0,
+      defaultStoneIdx: 0,
+      badge: ru ? 'Золото · Граммы и проба' : 'Altın · Gram ve ayar',
       photoTip: ru
-        ? 'Сделайте макро-фото украшения, фото на руке/шее, клеймо пробы и подарочную коробку (3:4)'
-        : 'Ürünün makro fotoğrafı, elde/boyunda duruşu, ayar damgası ve hediye kutusunu ekleyin (3:4)',
-      namePh: ru ? 'Напр: Золотое колье 585 (14K) с бриллиантом, 3.45 г' : 'Örn: 14 Ayar (585) Pırlanta Altın Kolye, 3.45 gr',
+        ? 'Сделайте макро-фото золота, фото на руке/шее, клеймо пробы (585/750/916) и фирменную коробку (3:4)'
+        : 'Altının makro fotoğrafı, elde/boyunda duruşu, ayar damgası (14K/18K/22K) ve kutusunu ekleyin (3:4)',
+      namePh: ru ? 'Напр: Золотое колье 585 (14K), плетение якорное, 3.45 г' : 'Örn: 14 Ayar (585) Altın Kolye, 3.45 gr',
       descPh: ru
-        ? 'Опишите плетение, замок, огранку камня, наличие пробирного клейма и сертификата…'
-        : 'Zincir modeli, kilit tipi, taş kesimi, ayar damgası ve sertifika bilgilerini yazın…',
+        ? 'Опишите пробу (585 / 750 / 916), точный вес в граммах, плетение, замок и наличие клейма…'
+        : 'Ayar (14K / 18K / 22K), net gramaj, zincir modeli, kilit tipi ve damga bilgisini yazın…',
       attrs: [
-        { k: 'finish', l: ru ? 'Обработка' : 'Yüzey / Kaplama', opts: ru ? ['Полировка', 'Алмазная грань', 'Родирование', 'Матовое', 'Чернение'] : ['Parlak', 'Kalemli', 'Rodyum', 'Mat', 'Oksitli'], filter: true },
+        { k: 'finish', l: ru ? 'Обработка' : 'Yüzey / İşçilik', opts: ru ? ['Полировка', 'Алмазная грань', 'Матовое', 'Родирование', 'Плетение (Бургу / Адана)'] : ['Parlak', 'Kalemli', 'Mat', 'Rodyum', 'Burgu / Hasır'], filter: true },
         { k: 'clasp', l: ru ? 'Замок / Застёжка' : 'Kilit tipi', opts: ru ? ['Карабин', 'Шпрингельный', 'Английский', 'Гвоздик (пусет)', 'Кольцо-конго'] : ['Papağan kilit', 'Halka kilit', 'İngiliz kilit', 'Vidalı / Çivili', 'Klipsli'] },
         { k: 'gender', l: ru ? 'Для кого' : 'Cinsiyet', opts: ru ? ['Женские', 'Мужские', 'Унисекс', 'Детские'] : ['Kadın', 'Erkek', 'Unisex', 'Çocuk'], filter: true },
         { k: 'origin', l: ru ? 'Производство' : 'Menşei', opts: ru ? ['Турция (Стамбул · Гранд-Базар)', 'Турция', 'Италия', 'Ручная работа'] : ['Türkiye (İstanbul · Kapalıçarşı)', 'Türkiye', 'İtalya', 'El yapımı'] },
@@ -404,9 +650,7 @@ export function getSmartProfile(path: string, lang: Lang): SmartProfile {
         [ru ? 'Жёлтое золото' : 'Sarı Altın', '#E5B84B'],
         [ru ? 'Белое золото' : 'Beyaz Altın', '#E8ECF2'],
         [ru ? 'Розовое золото' : 'Rose Altın', '#E5A198'],
-        [ru ? 'Серебро 925' : '925 Gümüş', '#CFD6E0'],
         [ru ? 'Биколор' : 'İki Renk Altın', '#DFC58A'],
-        [ru ? 'Чёрный родий' : 'Siyah Rodyum', '#2C2F36'],
       ],
       defaultBox: { l: '8', w: '8', h: '4', unit: 'cm', weightHint: '0,05' },
     }

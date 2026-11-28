@@ -10,7 +10,7 @@ import { useNav, Sheet } from './ui'
 import { categories, brands, colors as COLORS, fmt, img, locTitle, type Cat, type Product } from './data'
 import { SIZE_TABLES, SYS_LABEL, tableForCategory, systemsOf, equivalents, RATE_USD, RATE_TRY, TRY_PER_USD, type SizeSys } from './sizes'
 import {
-  getSmartProfile, JEWELRY_METALS, JEWELRY_STONES, JEWELRY_GRAM_PRESETS,
+  getSmartProfile, JEWELRY_METALS, JEWELRY_STONES, JEWELRY_GRAM_PRESETS, JEWELRY_SEGMENT_META,
 } from './categoryProfiles'
 
 type Cur = 'TRY' | 'USD'
@@ -36,7 +36,37 @@ const CAT_VISUAL: Record<string, CatVisual> = {
   'Oto Yedek Parça': { ic: Car, color: '#484848', bg: '#efeff3' },
   'Ev Temizlik Ürünleri': { ic: Droplets, color: '#0284c7', bg: '#e6f5fd' },
 }
-const visualOf = (rootName: string): CatVisual => CAT_VISUAL[rootName] ?? { ic: Folder, color: '#ae33ff', bg: '#f5e8ff' }
+const visualOf = (name: string): CatVisual => {
+  const seg = JEWELRY_SEGMENT_META[name]
+  if (seg) {
+    const ic = seg.seg === 'bijuteri' ? Sparkles : seg.seg === 'silver' ? Award : Gem
+    return { ic, color: seg.color, bg: seg.bg }
+  }
+  return CAT_VISUAL[name] ?? { ic: Folder, color: '#ae33ff', bg: '#f5e8ff' }
+}
+
+function collectLeaves(nodes: Cat[], prefix: string[] = []): { path: string; leaf: string; parent: string; root: string }[] {
+  const out: { path: string; leaf: string; parent: string; root: string }[] = []
+  for (const n of nodes) {
+    const next = [...prefix, n.name]
+    if (n.children && n.children.length > 0) {
+      out.push(...collectLeaves(n.children, next))
+    } else {
+      out.push({
+        path: next.join(' > '),
+        leaf: n.name,
+        parent: next.slice(0, -1).join(' > '),
+        root: next[0],
+      })
+    }
+  }
+  return out
+}
+
+function countLeaves(node: Cat): number {
+  if (!node.children || node.children.length === 0) return 0
+  return node.children.reduce((acc, ch) => acc + (ch.children && ch.children.length > 0 ? countLeaves(ch) : 1), 0)
+}
 
 const TAG_ICONS: Record<string, typeof Tag> = {
   'Gerçek deri': ShieldCheck,
@@ -479,6 +509,7 @@ export function ProductForm({ edit }: { edit?: Product }) {
   const [cq, setCq] = useState('')
   const profile = useMemo(() => getSmartProfile(cat, lang), [cat, lang])
   const isJewelry = profile.domain === 'jewelry'
+  const isPrecious = Boolean(profile.usesPreciousPassport)
 
   // 2. фото + обрезка
   const [photos, setPhotos] = useState<string[]>(isEdit ? [edit!.gallery ?? edit!.image, edit!.image] : [])
@@ -557,7 +588,7 @@ export function ProductForm({ edit }: { edit?: Product }) {
   const colorList = selColors.length ? selColors : [pf.oneColor]
   const sizeItems = [
     ...(table.id === 'one'
-      ? [{ id: 'r0', label: isJewelry && gramsN > 0 ? `${jewelGrams} ${ru ? 'г' : 'gr'}` : (table.rows[0][activeSys] ?? table.rows[0].int ?? 'OS'), sub: '' }]
+      ? [{ id: 'r0', label: isPrecious && gramsN > 0 ? `${jewelGrams} ${ru ? 'г' : 'gr'}` : (table.rows[0][activeSys] ?? table.rows[0].int ?? 'OS'), sub: '' }]
       : selRows.map((r) => ({
           id: `r${r}`,
           label: table.rows[r][activeSys] ?? table.rows[r][table.base] ?? '',
@@ -579,7 +610,7 @@ export function ProductForm({ edit }: { edit?: Product }) {
     cur === 'TRY'
       ? v.toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
       : fmt(Math.round(v))
-  const pricePerGram = isJewelry && gramsN > 0 && final > 0 ? final / gramsN : 0
+  const pricePerGram = isPrecious && gramsN > 0 && final > 0 ? final / gramsN : 0
   const tableName = (id: string) => pf.sizeTableNames[id] ?? id
   const activeStockUnit = pf.stockUnits[stockUnitIdx] ?? pf.stockUnits[0]
 
@@ -596,7 +627,7 @@ export function ProductForm({ edit }: { edit?: Product }) {
     { ok: !!cat, l: pf.selectedCat, s: 0 },
     { ok: photos.length >= 3, l: `${pf.photoTitle} (3+)`, s: 1 },
     { ok: name.trim().length >= 15, l: `${pf.prodName} (15+)`, s: 2 },
-    ...(isJewelry ? [{ ok: gramsN > 0, l: ru ? 'Вес золота / украшения (г)' : 'Altın / takı gramajı (gr)', s: 2 }] : []),
+    ...(isPrecious ? [{ ok: gramsN > 0, l: ru ? 'Вес изделия (граммы)' : 'Ürün gramajı (gr)', s: 2 }] : []),
     { ok: desc.trim().length >= 60, l: `${pf.desc}`, s: 2 },
     { ok: selColors.length > 0, l: pf.colorsTitle, s: 3 },
     { ok: table.id === 'one' || selRows.length > 0 || customSizes.length > 0, l: pf.sizesTitle, s: 3 },
@@ -623,26 +654,19 @@ export function ProductForm({ edit }: { edit?: Product }) {
     set((arr) => (arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v]))
   const sizeLabel = (r: number, s: SizeSys = activeSys) => table.rows[r][s] ?? table.rows[r][table.base] ?? ''
 
-  /* ---------- 1. КАТЕГОРИЯ ---------- */
+  /* ---------- 1. КАТЕГОРИЯ (поддержка 2 и 3 уровней, напр. Украшения › Золото / Бриллианты / Серебро / Бижутерия) ---------- */
   const level = stack.length ? stack[stack.length - 1].children ?? [] : categories
-  const allLeaves = useMemo(
-    () =>
-      categories.flatMap((c) =>
-        c.children && c.children.length > 0
-          ? c.children.map((l) => ({ path: `${c.name} > ${l.name}`, leaf: l.name, root: c.name }))
-          : [{ path: c.name, leaf: c.name, root: c.name }],
-      ),
-    [],
-  )
+  const levelHasGroups = level.some((c) => c.children && c.children.length > 0)
+  const allLeaves = useMemo(() => collectLeaves(categories), [])
   const recent = [
-    'Takılar > Kolye',
-    'Takılar > Yüzük',
+    'Takılar > Altın > Altın Yüzük',
+    'Takılar > Pırlanta > Tektaş Pırlanta Yüzük',
+    'Takılar > Gümüş > Gümüş Kolye',
     'Kadın > Elbiseler',
-    'Kadın ayakkabısı > Loafer',
   ]
   const quickSearch = ru
-    ? ['Колье', 'Кольца', 'Платья', 'Лоферы', 'Сумки', 'Кофе']
-    : ['Kolye', 'Yüzük', 'Elbise', 'Loafer', 'Çanta', 'Kahve']
+    ? ['Золото', 'Бриллианты', 'Серебро', 'Бижутерия', 'Платья', 'Лоферы']
+    : ['Altın', 'Pırlanta', 'Gümüş', 'Bijuteri', 'Elbise', 'Loafer']
 
   const pickCat = (path: string) => {
     const nextProf = getSmartProfile(path, lang)
@@ -651,8 +675,11 @@ export function ProductForm({ edit }: { edit?: Product }) {
     setCq('')
     setSys(nextTbl.base)
     setSelRows([])
+    setSelColors([])
     setAttrs({})
     setTagOn([])
+    if (nextProf.defaultMetalIdx !== undefined) setJewelMetalIdx(nextProf.defaultMetalIdx)
+    if (nextProf.defaultStoneIdx !== undefined) setJewelStoneIdx(nextProf.defaultStoneIdx)
     setBoxL(nextProf.defaultBox.l)
     setBoxW(nextProf.defaultBox.w)
     setBoxH(nextProf.defaultBox.h)
@@ -665,16 +692,19 @@ export function ProductForm({ edit }: { edit?: Product }) {
     if (!q) return []
     return allLeaves.filter((x) =>
       x.path.toLowerCase().includes(q) || catPathLabel(x.path).toLowerCase().includes(q),
-    ).slice(0, 18)
+    ).slice(0, 20)
   }, [allLeaves, cq, pf.catNames])
 
-  const pickedRoot = cat ? cat.split(' > ')[0] : ''
-  const pickedLeaf = cat ? cat.split(' > ').slice(-1)[0] : ''
-  const pickedVis = visualOf(pickedRoot)
+  const pickedParts = cat ? cat.split(' > ') : []
+  const pickedRoot = pickedParts[0] ?? ''
+  const pickedLeaf = pickedParts[pickedParts.length - 1] ?? ''
+  const pickedParent = pickedParts.length > 1 ? pickedParts.slice(0, -1).join(' > ') : ''
+  const pickedVis = visualOf(pickedParts.length >= 2 && JEWELRY_SEGMENT_META[pickedParts[1]] ? pickedParts[1] : pickedRoot)
   const PickedIc = pickedVis.ic
   const activeParent = stack.length ? stack[stack.length - 1] : null
   const parentVis = activeParent ? visualOf(activeParent.name) : null
   const ParentIc = parentVis?.ic ?? Folder
+  const backLabel = stack.length > 1 ? catName(stack[stack.length - 2].name) : pf.allCats
 
   const StepCat = (
     <>
@@ -691,7 +721,7 @@ export function ProductForm({ edit }: { edit?: Product }) {
             <span className="cat-picked-ok"><Check size={10} strokeWidth={3} /></span>
           </div>
           <div className="cat-picked-info">
-            <small>{pickedRoot !== pickedLeaf ? catName(pickedRoot) : pf.selectedCat}</small>
+            <small>{pickedParent ? catPathLabel(pickedParent) : pf.selectedCat}</small>
             <b>{catName(pickedLeaf)}</b>
             <span className="cat-size-badge">
               {isJewelry ? <Gem size={11} /> : <Ruler size={11} />}
@@ -706,7 +736,8 @@ export function ProductForm({ edit }: { edit?: Product }) {
         <div className="cat-results">
           {searchHits.length > 0 ? (
             searchHits.map((item) => {
-              const v = visualOf(item.root)
+              const segKey = item.path.split(' > ')[1]
+              const v = visualOf(segKey && JEWELRY_SEGMENT_META[segKey] ? segKey : item.root)
               const Ic = v.ic
               const on = cat === item.path
               const sz = tableName(tableForCategory(item.path).id)
@@ -715,7 +746,7 @@ export function ProductForm({ edit }: { edit?: Product }) {
                   <span className="cat-mini-ic" style={{ background: v.bg, color: v.color }}><Ic size={15} /></span>
                   <span className="cat-subrow-t">
                     <b>{catName(item.leaf)}</b>
-                    {item.root !== item.leaf && <small>{catName(item.root)}</small>}
+                    {item.parent && <small>{catPathLabel(item.parent)}</small>}
                   </span>
                   <span className="cat-subrow-r">
                     <em className="cat-sz-pill">{sz}</em>
@@ -740,14 +771,16 @@ export function ProductForm({ edit }: { edit?: Product }) {
           <div className="cat-sec-h"><Clock size={13} /><span>{pf.recent}</span></div>
           <div className="cat-recent">
             {recent.map((r) => {
-              const [root, leaf] = r.split(' > ')
-              const v = visualOf(root)
+              const parts = r.split(' > ')
+              const leafNm = parts[parts.length - 1]
+              const segKey = parts[1]
+              const v = visualOf(segKey && JEWELRY_SEGMENT_META[segKey] ? segKey : parts[0])
               const Ic = v.ic
               const on = cat === r
               return (
                 <button type="button" key={r} className={'cat-rec-card' + (on ? ' on' : '')} onClick={() => pickCat(r)}>
                   <span className="cat-rec-ic" style={{ background: v.bg, color: v.color }}><Ic size={15} /></span>
-                  <span className="cat-rec-txt"><b>{catName(leaf)}</b><small>{catName(root)}</small></span>
+                  <span className="cat-rec-txt"><b>{catName(leafNm)}</b><small>{catPathLabel(parts.slice(0, -1).join(' > '))}</small></span>
                   {on && <span className="cat-rec-chk"><Check size={11} strokeWidth={3} /></span>}
                 </button>
               )
@@ -764,7 +797,8 @@ export function ProductForm({ edit }: { edit?: Product }) {
               const v = visualOf(c.name)
               const Ic = v.ic
               const leaf = !c.children || c.children.length === 0
-              const subCount = c.children?.length ?? 0
+              const leafCount = countLeaves(c)
+              const isGrouped = Boolean(c.children?.some((ch) => ch.children && ch.children.length > 0))
               const isSelected = cat === c.name || pickedRoot === c.name
               return (
                 <button
@@ -778,12 +812,14 @@ export function ProductForm({ edit }: { edit?: Product }) {
                     {isSelected ? (
                       <span className="cat-card-chk"><Check size={11} strokeWidth={3} /></span>
                     ) : (
-                      <span className="cat-card-cnt">{subCount}</span>
+                      <span className="cat-card-cnt">{leafCount}</span>
                     )}
                   </div>
                   <div className="cat-card-name">{catName(c.name)}</div>
                   <div className="cat-card-sub">
-                    {subCount > 0 ? `${subCount} ${pf.subCount}` : pf.directPick}
+                    {isGrouped
+                      ? (ru ? `${c.children!.length} раздела · ${leafCount}` : `${c.children!.length} bölüm · ${leafCount}`)
+                      : leafCount > 0 ? `${leafCount} ${pf.subCount}` : pf.directPick}
                     {!leaf && <ChevronRight size={12} />}
                   </div>
                 </button>
@@ -794,30 +830,80 @@ export function ProductForm({ edit }: { edit?: Product }) {
       ) : (
         <>
           <div className="cat-parent">
-            <button type="button" className="cat-back-pill" onClick={() => setStack(stack.slice(0, -1))}>
-              <ArrowLeft size={14} />{pf.allCats}
-            </button>
+            <div className="cat-parent-nav">
+              <button type="button" className="cat-back-pill" onClick={() => setStack(stack.slice(0, -1))}>
+                <ArrowLeft size={14} />{backLabel}
+              </button>
+              {stack.length > 1 && (
+                <button type="button" className="cat-root-pill" onClick={() => setStack([])}>
+                  {pf.allCats}
+                </button>
+              )}
+            </div>
             <div className="cat-parent-main">
               <span className="cat-card-ic" style={{ background: parentVis?.bg, color: parentVis?.color }}><ParentIc size={19} /></span>
-              <div><b>{activeParent ? catName(activeParent.name) : ''}</b><small>{level.length} {pf.subCount} · {pf.subPickHint}</small></div>
+              <div>
+                <b>{activeParent ? catName(activeParent.name) : ''}</b>
+                <small>
+                  {stack.length > 1 ? `${stack.slice(0, -1).map((s) => catName(s.name)).join(' › ')} · ` : ''}
+                  {levelHasGroups
+                    ? (ru ? `${level.length} раздела · выберите тип украшения` : `${level.length} bölüm · takı türünü seçin`)
+                    : `${level.length} ${pf.subCount} · ${pf.subPickHint}`}
+                </small>
+              </div>
             </div>
           </div>
 
-          <div className="cat-results">
-            {level.map((c) => {
-              const path = [...stack.map((s) => s.name), c.name].join(' > ')
-              const leaf = !c.children || c.children.length === 0
-              const on = cat === path
-              const sz = tableName(tableForCategory(path).id)
-              return (
-                <button type="button" key={c.name} className={'cat-subrow' + (on ? ' on' : '')} onClick={() => { if (leaf) pickCat(path); else setStack([...stack, c]) }}>
-                  <span className={'cat-check-dot' + (on ? ' on' : '')}>{on && <Check size={11} strokeWidth={3} />}</span>
-                  <span className="cat-subrow-t"><b>{catName(c.name)}</b></span>
-                  <span className="cat-subrow-r"><em className="cat-sz-pill">{sz}</em>{!leaf && <ChevronRight size={15} />}</span>
-                </button>
-              )
-            })}
-          </div>
+          {levelHasGroups ? (
+            <div className="cat-seg-grid">
+              {level.map((seg) => {
+                const segPath = [...stack.map((s) => s.name), seg.name].join(' > ')
+                const v = visualOf(seg.name)
+                const Ic = v.ic
+                const meta = JEWELRY_SEGMENT_META[seg.name]
+                const cnt = countLeaves(seg)
+                const isSel = cat.startsWith(segPath + ' > ') || cat === segPath
+                return (
+                  <button
+                    type="button"
+                    key={seg.name}
+                    className={'cat-seg-card' + (isSel ? ' on' : '')}
+                    onClick={() => setStack([...stack, seg])}
+                  >
+                    <div className="cat-seg-top">
+                      <span className="cat-seg-ic" style={{ background: v.bg, color: v.color }}><Ic size={20} /></span>
+                      {isSel ? (
+                        <span className="cat-card-chk"><Check size={11} strokeWidth={3} /></span>
+                      ) : (
+                        <span className="cat-seg-cnt" style={{ background: v.bg, color: v.color }}>{cnt}</span>
+                      )}
+                    </div>
+                    <b className="cat-seg-title">{catName(seg.name)}</b>
+                    {meta && <p className="cat-seg-sub">{meta.sub[lang]}</p>}
+                    <span className="cat-seg-go" style={{ color: v.color }}>
+                      {cnt} {pf.subCount}<ChevronRight size={13} />
+                    </span>
+                  </button>
+                )
+              })}
+            </div>
+          ) : (
+            <div className="cat-results">
+              {level.map((c) => {
+                const path = [...stack.map((s) => s.name), c.name].join(' > ')
+                const leaf = !c.children || c.children.length === 0
+                const on = cat === path
+                const sz = tableName(tableForCategory(path).id)
+                return (
+                  <button type="button" key={c.name} className={'cat-subrow' + (on ? ' on' : '')} onClick={() => { if (leaf) pickCat(path); else setStack([...stack, c]) }}>
+                    <span className={'cat-check-dot' + (on ? ' on' : '')}>{on && <Check size={11} strokeWidth={3} />}</span>
+                    <span className="cat-subrow-t"><b>{catName(c.name)}</b></span>
+                    <span className="cat-subrow-r"><em className="cat-sz-pill">{sz}</em>{!leaf && <ChevronRight size={15} />}</span>
+                  </button>
+                )
+              })}
+            </div>
+          )}
         </>
       )}
       {tried && errs.cat && <div className="pf-err"><CircleAlert size={12} />{errs.cat}</div>}
@@ -946,7 +1032,7 @@ export function ProductForm({ edit }: { edit?: Product }) {
 
   /* ---------- 3. ОПИСАНИЕ + ЮВЕЛИРНЫЙ ПАСПОРТ (ГРАММЫ / ПРОБА / КАМЕНЬ / КЛЕЙМО) ---------- */
   const fillSmartTitle = () => {
-    if (isJewelry) {
+    if (isPrecious) {
       const leafNm = pickedLeaf ? catName(pickedLeaf) : (ru ? 'Украшение' : 'Takı')
       const stoneTxt = jewelStoneIdx > 0 ? (ru ? `с камнем (${activeStone})` : `${activeStone} taşlı`) : ''
       const gramTxt = gramsN > 0 ? `${jewelGrams} ${ru ? 'г' : 'gr'}` : ''
@@ -964,7 +1050,7 @@ export function ProductForm({ edit }: { edit?: Product }) {
   }
 
   const fillAiDesc = () => {
-    if (isJewelry) {
+    if (isPrecious) {
       const lines = [
         `${name || (pickedLeaf ? catName(pickedLeaf) : (ru ? 'Ювелирное украшение' : 'Mücevher'))}${brand && brand !== pf.brandless ? ` — ${brand}` : ''}.`,
         `• ${ru ? 'Металл и проба' : 'Maden ve ayar'}: ${activeMetal}`,
@@ -982,7 +1068,7 @@ export function ProductForm({ edit }: { edit?: Product }) {
       .map((a) => `• ${a.l}: ${attrs[a.k].join(', ')}`)
     const lines = [
       `${name || (pickedLeaf ? catName(pickedLeaf) : (ru ? 'Товар' : 'Ürün'))}${brand && brand !== pf.brandless ? ` — ${brand}` : ''}.`,
-      ...(attrLines.length ? attrLines : [ru ? '• Высокое турецкое качество и аккуратный пошив' : '• Yüksek Türkiye kalitesi ve özenli işçilik']),
+      ...(attrLines.length ? attrLines : [ru ? '• Высокое турецкое качество и аккуратное исполнение' : '• Yüksek Türkiye kalitesi ve özenli işçilik']),
       ru ? '• Быстрая отправка из Стамбула в Казахстан, Россию, Кыргызстан и Узбекистан.' : '• İstanbul’dan Kazakistan, Rusya, Kırgızistan ve Özbekistan’a hızlı gönderim.',
     ]
     setDesc(lines.join('\n'))
@@ -990,9 +1076,18 @@ export function ProductForm({ edit }: { edit?: Product }) {
   }
 
   const filledAttrCount = profile.attrs.filter((a) => (attrs[a.k]?.length ?? 0) > 0).length
-  const quickBrands = isJewelry
+  const quickBrands = isPrecious
     ? [pf.brandless, 'Atasay', 'Altınbaş', 'Zen', 'Koçak']
-    : [pf.brandless, 'Iskra', 'Diva', 'Kiğılı', 'Polo Garage']
+    : isJewelry
+      ? [pf.brandless, 'So Chic', 'Swarovski', 'Xuping', 'Koton']
+      : [pf.brandless, 'Iskra', 'Diva', 'Kiğılı', 'Polo Garage']
+
+  const passportTitle =
+    profile.jewelrySeg === 'diamond'
+      ? (ru ? 'Паспорт бриллианта и золота' : 'Pırlanta ve Altın Özellikleri')
+      : profile.jewelrySeg === 'silver'
+        ? (ru ? 'Паспорт серебра 925 пробы' : '925 Ayar Gümüş Özellikleri')
+        : (ru ? 'Паспорт золота и украшения' : 'Altın ve Mücevher Özellikleri')
 
   const StepInfo = (
     <>
@@ -1001,13 +1096,13 @@ export function ProductForm({ edit }: { edit?: Product }) {
         <span>{pf.autoTranslate}</span>
       </div>
 
-      {/* Умная карточка для ЗОЛОТА И УКРАШЕНИЙ (граммы, проба, камень, караты, клеймо, коробка) */}
-      {isJewelry && (
+      {/* Умная карточка для ЗОЛОТА, БРИЛЛИАНТОВ И СЕРЕБРА 925 (граммы, проба, камень, караты, клеймо, коробка) */}
+      {isPrecious && (
         <section className="pf-jewel-card">
           <div className="pf-jewel-h">
             <span className="pf-jewel-ic"><Gem size={18} /></span>
             <div>
-              <h3>{ru ? 'Паспорт золота и украшения' : 'Altın ve Mücevher Özellikleri'}</h3>
+              <h3>{passportTitle}</h3>
               <p>{ru ? 'Точные граммы, проба и гарантии повышают доверие покупателей' : 'Net gramaj, ayar ve sertifika bilgisi alıcı güvenini artırır'}</p>
             </div>
           </div>
@@ -1540,12 +1635,16 @@ export function ProductForm({ edit }: { edit?: Product }) {
   const StepPrice = (
     <>
       <Section icon={<Wallet size={16} />} title={pf.priceTitle} sub={pf.priceSub}>
-        {/* Умный калькулятор цены по граммам для золота/украшений */}
-        {isJewelry && (
+        {/* Умный калькулятор цены по граммам для золота/бриллиантов/серебра */}
+        {isPrecious && (
           <div className="pf-gram-calc">
             <div className="pf-gc-h">
               <Calculator size={14} />
-              <b>{ru ? 'Калькулятор по граммам золота' : 'Gram altın fiyat hesaplayıcı'}</b>
+              <b>
+                {profile.jewelrySeg === 'silver'
+                  ? (ru ? 'Калькулятор по граммам серебра' : 'Gram gümüş fiyat hesaplayıcı')
+                  : (ru ? 'Калькулятор по граммам золота' : 'Gram altın fiyat hesaplayıcı')}
+              </b>
               {gramsN > 0 && <span>{jewelGrams} {ru ? 'г' : 'gr'}</span>}
             </div>
             {gramsN > 0 ? (
@@ -1760,7 +1859,7 @@ export function ProductForm({ edit }: { edit?: Product }) {
           )}
           <div className="pf-mkt-top-badges">
             {discN > 0 && <span className="pf-mkt-disc">−{discN}%</span>}
-            {isJewelry && gramsN > 0 && (
+            {isPrecious && gramsN > 0 && (
               <span className="pf-mkt-gold"><Gem size={11} />{jewelGrams} {ru ? 'г' : 'gr'}</span>
             )}
           </div>
@@ -1791,8 +1890,8 @@ export function ProductForm({ edit }: { edit?: Product }) {
           </div>
           {cat && <div className="pf-mkt-cat">{catPathLabel(cat)}</div>}
 
-          {/* Спец-чипы для ювелирных изделий */}
-          {isJewelry && (
+          {/* Спец-чипы для ювелирных изделий (золото, бриллианты, серебро) */}
+          {isPrecious && (
             <div className="pf-mkt-specs">
               <span>{activeMetal}</span>
               {gramsN > 0 && <span>{jewelGrams} {ru ? 'г' : 'gr'}</span>}

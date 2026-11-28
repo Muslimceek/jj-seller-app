@@ -180,9 +180,10 @@ export const SIZE_TABLES: SizeTable[] = [
 export function tableForCategory(path: string): SizeTable {
   const p = path.toLowerCase()
   const by = (id: string) => SIZE_TABLES.find((t) => t.id === id)!
-  if (/yüzük|alyans|tektaş|кольц/.test(p)) return by('rings')
-  if (/kolye|zincir|halhal|колье|цепоч|анклет/.test(p)) return by('chains')
-  if (/bileklik|bilezik|kelepçe|браслет/.test(p)) return by('bracelets')
+  if (/yüzük|alyans|tektaş|beştaş|tamtur|baget|кольц|перст/.test(p)) return by('rings')
+  if (/kolye|zincir|halhal|choker|колье|цепоч|чокер|анклет/.test(p)) return by('chains')
+  if (/bileklik|bilezik|kelepçe|su yolu|браслет/.test(p)) return by('bracelets')
+  if (p.startsWith('takılar')) return by('one')
   if (p.includes('ayakkab') || /loafer|babet|sneaker|bot|çizme|topuklu|klasik|sandalet|terlik|mokasen|обув|лофер|кроссов|сапог|балет/.test(p)) return by('shoes')
   if (/kot|jean|pantolon|джинс|брюк/.test(p)) return by('jeans')
   if (p.startsWith('çocuk') || p.includes('bebek') || p.includes('дет')) return by('kids')
